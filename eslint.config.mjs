@@ -1,35 +1,36 @@
-import tseslint from "@typescript-eslint/eslint-plugin";
-import tsparser from "@typescript-eslint/parser";
+import tseslint from '@typescript-eslint/eslint-plugin';
+import tsparser from '@typescript-eslint/parser';
+import js from '@eslint/js';
 
 export default [
+  js.configs.recommended,
   {
     ignores: [
-      "dist/**",
-      "node_modules/**",
-      "esbuild.config.js",
-      ".vscode-test.js",
+      'dist/**',
+      'node_modules/**',
+      'esbuild.config.js',
+      '.vscode-test.js',
+      'commitlint.config.js',
     ],
   },
   {
-    files: ["src/**/*.ts"],
+    files: ['src/**/*.ts'],
     languageOptions: {
       parser: tsparser,
       parserOptions: {
         ecmaVersion: 2022,
-        sourceType: "module",
+        sourceType: 'module',
       },
     },
     plugins: {
-      "@typescript-eslint": tseslint,
+      '@typescript-eslint': tseslint,
     },
     rules: {
-      "@typescript-eslint/no-unused-vars": [
-        "error",
-        { argsIgnorePattern: "^_" },
-      ],
-      "@typescript-eslint/explicit-function-return-type": "off",
-      "@typescript-eslint/no-explicit-any": "warn",
-      "no-console": "warn",
+      ...tseslint.configs.recommended.rules,
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      '@typescript-eslint/explicit-function-return-type': 'off',
+      '@typescript-eslint/no-explicit-any': 'warn',
+      'no-console': 'warn',
     },
   },
 ];
