@@ -1,0 +1,4 @@
+{"type":"server-started","port":53912,"host":"127.0.0.1","url_host":"localhost","url":"http://localhost:53912","screen_dir":"/home/hugo/Projetos/vs-code-extensions/ho-opencode-explorer/.superpowers/brainstorm/69160-1781566555/content","state_dir":"/home/hugo/Projetos/vs-code-extensions/ho-opencode-explorer/.superpowers/brainstorm/69160-1781566555/state"}
+{"type":"screen-added","file":"/home/hugo/Projetos/vs-code-extensions/ho-opencode-explorer/.superpowers/brainstorm/69160-1781566555/content/sidebar-layout.html"}
+{"type":"screen-added","file":"/home/hugo/Projetos/vs-code-extensions/ho-opencode-explorer/.superpowers/brainstorm/69160-1781566555/content/sidebar-layout-v2.html"}
+{"type":"server-stopped","reason":"idle timeout"}
