@@ -3,11 +3,14 @@
 src/**
 node_modules/**
 tsconfig.json
+tsconfig.test.json
 esbuild.config.js
 eslint.config.mjs
 .prettierrc
 .vscode-test.js
 .github/**
 docs/**
-**/*.ts
-!dist/**
+.husky/**
+.superpowers/**
+commitlint.config.js
+dist/test/**

@@ -74,6 +74,7 @@ suite('SkillTreeDataProvider', () => {
     provider.setSkills([globalSkill, globalSkill], [localSkill]);
     const root = provider.getChildren();
     const globalNode = root.find((n) => n.label === 'Global Skills');
-    assert.ok((globalNode!.label as string).includes('(2)'));
+    const item = provider.getTreeItem(globalNode!);
+    assert.ok((item.label as string).includes('(2)'));
   });
 });
