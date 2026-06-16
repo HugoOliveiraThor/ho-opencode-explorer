@@ -21,6 +21,11 @@ export default [
         ecmaVersion: 2022,
         sourceType: 'module',
       },
+      globals: {
+        process: 'readonly',
+        __dirname: 'readonly',
+        __filename: 'readonly',
+      },
     },
     plugins: {
       '@typescript-eslint': tseslint,
@@ -31,6 +36,19 @@ export default [
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/no-explicit-any': 'warn',
       'no-console': 'warn',
+    },
+  },
+  {
+    files: ['src/test/**/*.ts'],
+    languageOptions: {
+      globals: {
+        suite: 'readonly',
+        test: 'readonly',
+        setup: 'readonly',
+        teardown: 'readonly',
+        suiteSetup: 'readonly',
+        suiteTeardown: 'readonly',
+      },
     },
   },
 ];
