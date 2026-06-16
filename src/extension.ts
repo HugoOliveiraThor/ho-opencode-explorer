@@ -11,6 +11,7 @@ let detailPanel: SkillDetailPanel;
 let toggleManager: SkillToggleManager;
 let updateService: UpdateService;
 let debounceTimer: ReturnType<typeof setTimeout> | undefined;
+let extensionVersion = '0.0.0';
 
 export function activate(context: vscode.ExtensionContext): void {
   scanner = new SkillsScanner();
@@ -85,6 +86,10 @@ export function activate(context: vscode.ExtensionContext): void {
 
   setupFileWatchers(context);
 
+  const pkgJson = context.extension.packageJSON as { version: string };
+  extensionVersion = pkgJson.version;
+  updateViewTitle();
+
   refreshSkills();
 }
 
@@ -129,6 +134,15 @@ async function refreshSkills(): Promise<void> {
 
   const { global, local } = await scanner.scanAll(workspaceRoot);
   treeProvider.setSkills(global, local);
+  updateViewTitle();
+}
+
+function updateViewTitle(): void {
+  vscode.commands.executeCommand(
+    'setContext',
+    'ho-opencode-explorer.version',
+    `v${extensionVersion}`,
+  );
 }
 
 export function deactivate(): void {
