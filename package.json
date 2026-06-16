@@ -41,6 +41,43 @@
           "type": "webview"
         }
       ]
+    },
+    "commands": [
+      {
+        "command": "ho-opencode-explorer.checkForUpdates",
+        "title": "Check for Updates",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "ho-opencode-explorer.refreshSkills",
+        "title": "Refresh Skills",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "ho-opencode-explorer.openSkill",
+        "title": "Open SKILL.md"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "ho-opencode-explorer.checkForUpdates",
+          "when": "view == ho-opencode-skills",
+          "group": "navigation"
+        },
+        {
+          "command": "ho-opencode-explorer.refreshSkills",
+          "when": "view == ho-opencode-skills",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "ho-opencode-explorer.openSkill",
+          "when": "view == ho-opencode-skills && viewItem == skill",
+          "group": "inline"
+        }
+      ]
     }
   },
   "scripts": {

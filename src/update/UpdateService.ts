@@ -51,7 +51,7 @@ export class UpdateService {
           `HO OpenCode Explorer is up to date (v${localVersion})`,
         );
       }
-    } catch (err) {
+    } catch {
       vscode.window.showWarningMessage(
         'Could not check for updates. Check your internet connection.',
       );
