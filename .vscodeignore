@@ -15,3 +15,5 @@ docs/**
 commitlint.config.js
 out/**
 *.map
+
+**/*.map
