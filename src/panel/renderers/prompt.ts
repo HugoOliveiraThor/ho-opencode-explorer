@@ -1,0 +1,37 @@
+import type * as vscode from 'vscode';
+import {
+  htmlHead,
+  htmlFooter,
+  escapeHtml,
+  escapeAttr,
+  badge,
+  BADGE_OK,
+  errorBlock,
+} from '../html';
+import type { PromptItem } from '../../types';
+
+export function renderPrompt(webview: vscode.Webview, nonce: string, item: PromptItem): string {
+  const error = item.error ? errorBlock('Error', item.error) : '';
+  const preview = item.error
+    ? ''
+    : `<div class="label">PREVIEW</div><pre>${escapeHtml(item.preview)}</pre>`;
+
+  const body = `
+  <div class="header-row">
+    <h2>${escapeHtml(item.name)}</h2>
+    <div class="header-badges">
+      ${badge(BADGE_OK, item.kind)}
+      ${badge(BADGE_OK, item.source)}
+    </div>
+  </div>
+  <div class="path">${escapeHtml(item.path)}</div>
+  ${error}
+  ${preview}
+  <hr>
+  <div class="actions">
+    <button onclick="openFile('${escapeAttr(item.path)}')">📂 Open File</button>
+    <button onclick="copyPath('${escapeAttr(item.path)}')">📋 Copy Path</button>
+  </div>`;
+
+  return `${htmlHead(webview, nonce)}${body}${htmlFooter(nonce)}`;
+}

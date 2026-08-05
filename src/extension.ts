@@ -54,7 +54,7 @@ export function activate(context: vscode.ExtensionContext): void {
     skillsTreeView.onDidChangeSelection((event) => {
       const node = event.selection[0];
       if (node && node.type === 'item') {
-        detailPanel.showSkill(node.item);
+        detailPanel.show(node.item);
       } else {
         detailPanel.clear();
       }
@@ -66,7 +66,7 @@ export function activate(context: vscode.ExtensionContext): void {
     commandsTreeView.onDidChangeSelection((event) => {
       const node = event.selection[0];
       if (node && node.type === 'item') {
-        detailPanel.showCommand(node.item);
+        detailPanel.show(node.item);
       } else {
         detailPanel.clear();
       }
