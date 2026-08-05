@@ -42,6 +42,18 @@
           "name": "Commands"
         },
         {
+          "id": "ho-opencode-agents",
+          "name": "Agents"
+        },
+        {
+          "id": "ho-opencode-mcp",
+          "name": "MCP Servers"
+        },
+        {
+          "id": "ho-opencode-prompts",
+          "name": "Prompts & Instructions"
+        },
+        {
           "id": "ho-opencode-detail",
           "name": "Details",
           "type": "webview"
@@ -78,6 +90,24 @@
         "title": "Open Command File",
         "category": "HO OpenCode Explorer",
         "icon": "$(go-to-file)"
+      },
+      {
+        "command": "_ho-opencode-explorer.openAgent#sideBar",
+        "title": "Open Agent Source",
+        "category": "HO OpenCode Explorer",
+        "icon": "$(go-to-file)"
+      },
+      {
+        "command": "_ho-opencode-explorer.openMcp#sideBar",
+        "title": "Open MCP Config",
+        "category": "HO OpenCode Explorer",
+        "icon": "$(go-to-file)"
+      },
+      {
+        "command": "_ho-opencode-explorer.openPrompt#sideBar",
+        "title": "Open Prompt File",
+        "category": "HO OpenCode Explorer",
+        "icon": "$(go-to-file)"
       }
     ],
     "menus": {
@@ -112,6 +142,21 @@
         {
           "command": "_ho-opencode-explorer.openCommand#sideBar",
           "when": "view == ho-opencode-commands && viewItem == command",
+          "group": "inline"
+        },
+        {
+          "command": "_ho-opencode-explorer.openAgent#sideBar",
+          "when": "view == ho-opencode-agents && viewItem == agent",
+          "group": "inline"
+        },
+        {
+          "command": "_ho-opencode-explorer.openMcp#sideBar",
+          "when": "view == ho-opencode-mcp && viewItem == mcp",
+          "group": "inline"
+        },
+        {
+          "command": "_ho-opencode-explorer.openPrompt#sideBar",
+          "when": "view == ho-opencode-prompts && viewItem == prompt",
           "group": "inline"
         }
       ]

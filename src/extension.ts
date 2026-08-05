@@ -1,28 +1,51 @@
 import * as vscode from 'vscode';
 import { SkillsScanner } from './scanner/SkillsScanner';
 import { CommandsScanner } from './scanner/CommandsScanner';
+import { AgentsScanner } from './scanner/AgentsScanner';
+import { McpScanner } from './scanner/McpScanner';
+import { PromptsScanner } from './scanner/PromptsScanner';
 import { createSkillsView } from './tree/skills';
 import { createCommandsView } from './tree/commands';
+import { createAgentsView } from './tree/agents';
+import { createMcpView } from './tree/mcp';
+import { createPromptsView } from './tree/prompts';
+import type { ContentNode } from './tree/content';
 import { DetailPanel } from './panel/DetailPanel';
 import { SkillToggleManager } from './toggle/SkillToggleManager';
 import { UpdateService } from './update/UpdateService';
+import type { DetailItem } from './types';
 
 let scanner: SkillsScanner;
 let commandsScanner: CommandsScanner;
+let agentsScanner: AgentsScanner;
+let mcpScanner: McpScanner;
+let promptsScanner: PromptsScanner;
 let skillsView: ReturnType<typeof createSkillsView>;
 let commandsView: ReturnType<typeof createCommandsView>;
+let agentsView: ReturnType<typeof createAgentsView>;
+let mcpView: ReturnType<typeof createMcpView>;
+let promptsView: ReturnType<typeof createPromptsView>;
 let detailPanel: DetailPanel;
 let toggleManager: SkillToggleManager;
 let updateService: UpdateService;
 let skillsDebounceTimer: ReturnType<typeof setTimeout> | undefined;
 let commandsDebounceTimer: ReturnType<typeof setTimeout> | undefined;
+let agentsDebounceTimer: ReturnType<typeof setTimeout> | undefined;
+let mcpDebounceTimer: ReturnType<typeof setTimeout> | undefined;
+let promptsDebounceTimer: ReturnType<typeof setTimeout> | undefined;
 let extensionVersion = '0.0.0';
 
 export function activate(context: vscode.ExtensionContext): void {
   scanner = new SkillsScanner();
   commandsScanner = new CommandsScanner();
+  agentsScanner = new AgentsScanner();
+  mcpScanner = new McpScanner();
+  promptsScanner = new PromptsScanner();
   skillsView = createSkillsView();
   commandsView = createCommandsView();
+  agentsView = createAgentsView();
+  mcpView = createMcpView();
+  promptsView = createPromptsView();
   toggleManager = new SkillToggleManager();
   updateService = new UpdateService();
   detailPanel = new DetailPanel();
@@ -41,6 +64,27 @@ export function activate(context: vscode.ExtensionContext): void {
   });
   context.subscriptions.push(commandsTreeView);
 
+  // Agents TreeView
+  const agentsTreeView = vscode.window.createTreeView('ho-opencode-agents', {
+    treeDataProvider: agentsView.provider,
+    canSelectMany: false,
+  });
+  context.subscriptions.push(agentsTreeView);
+
+  // MCP TreeView
+  const mcpTreeView = vscode.window.createTreeView('ho-opencode-mcp', {
+    treeDataProvider: mcpView.provider,
+    canSelectMany: false,
+  });
+  context.subscriptions.push(mcpTreeView);
+
+  // Prompts TreeView
+  const promptsTreeView = vscode.window.createTreeView('ho-opencode-prompts', {
+    treeDataProvider: promptsView.provider,
+    canSelectMany: false,
+  });
+  context.subscriptions.push(promptsTreeView);
+
   // Shared Detail Panel
   const panelRegistration = vscode.window.registerWebviewViewProvider(
     'ho-opencode-detail',
@@ -49,28 +93,13 @@ export function activate(context: vscode.ExtensionContext): void {
   );
   context.subscriptions.push(panelRegistration);
 
-  // Skills tree selection → detail panel
+  // Selection → detail panel (generic across all five views)
   context.subscriptions.push(
-    skillsTreeView.onDidChangeSelection((event) => {
-      const node = event.selection[0];
-      if (node && node.type === 'item') {
-        detailPanel.show(node.item);
-      } else {
-        detailPanel.clear();
-      }
-    }),
-  );
-
-  // Commands tree selection → detail panel
-  context.subscriptions.push(
-    commandsTreeView.onDidChangeSelection((event) => {
-      const node = event.selection[0];
-      if (node && node.type === 'item') {
-        detailPanel.show(node.item);
-      } else {
-        detailPanel.clear();
-      }
-    }),
+    onSelection(skillsTreeView),
+    onSelection(commandsTreeView),
+    onSelection(agentsTreeView),
+    onSelection(mcpTreeView),
+    onSelection(promptsTreeView),
   );
 
   // Skills checkbox toggle
@@ -138,6 +167,36 @@ export function activate(context: vscode.ExtensionContext): void {
   );
   context.subscriptions.push(openCommandCommand);
 
+  // Open Agent Source command
+  const openAgentCommand = vscode.commands.registerCommand(
+    '_ho-opencode-explorer.openAgent#sideBar',
+    (agentPath: string) => {
+      const uri = vscode.Uri.file(agentPath);
+      vscode.commands.executeCommand('vscode.open', uri);
+    },
+  );
+  context.subscriptions.push(openAgentCommand);
+
+  // Open MCP Config command
+  const openMcpCommand = vscode.commands.registerCommand(
+    '_ho-opencode-explorer.openMcp#sideBar',
+    (mcpPath: string) => {
+      const uri = vscode.Uri.file(mcpPath);
+      vscode.commands.executeCommand('vscode.open', uri);
+    },
+  );
+  context.subscriptions.push(openMcpCommand);
+
+  // Open Prompt command
+  const openPromptCommand = vscode.commands.registerCommand(
+    '_ho-opencode-explorer.openPrompt#sideBar',
+    (promptPath: string) => {
+      const uri = vscode.Uri.file(promptPath);
+      vscode.commands.executeCommand('vscode.open', uri);
+    },
+  );
+  context.subscriptions.push(openPromptCommand);
+
   setupFileWatchers(context);
 
   const pkgJson = context.extension.packageJSON as { version: string };
@@ -146,6 +205,22 @@ export function activate(context: vscode.ExtensionContext): void {
 
   refreshSkills();
   refreshCommands();
+  refreshAgents();
+  refreshMcp();
+  refreshPrompts();
+}
+
+function onSelection<T extends DetailItem>(
+  treeView: vscode.TreeView<ContentNode<T>>,
+): vscode.Disposable {
+  return treeView.onDidChangeSelection((event) => {
+    const node = event.selection[0];
+    if (node && node.type === 'item') {
+      detailPanel.show(node.item);
+    } else {
+      detailPanel.clear();
+    }
+  });
 }
 
 function setupFileWatchers(context: vscode.ExtensionContext): void {
@@ -189,7 +264,7 @@ function setupFileWatchers(context: vscode.ExtensionContext): void {
   commandsFileWatcher.onDidDelete(debouncedRefreshCommands);
   context.subscriptions.push(commandsFileWatcher);
 
-  // opencode.json watcher (affects both commands and skills)
+  // opencode.json watcher (affects all config-backed views)
   const configPattern = new vscode.RelativePattern(
     vscode.Uri.file(home),
     '.config/opencode/opencode.json',
@@ -198,10 +273,16 @@ function setupFileWatchers(context: vscode.ExtensionContext): void {
   configWatcher.onDidChange(() => {
     debouncedRefreshSkills();
     debouncedRefreshCommands();
+    debouncedRefreshAgents();
+    debouncedRefreshMcp();
+    debouncedRefreshPrompts();
   });
   configWatcher.onDidCreate(() => {
     debouncedRefreshSkills();
     debouncedRefreshCommands();
+    debouncedRefreshAgents();
+    debouncedRefreshMcp();
+    debouncedRefreshPrompts();
   });
   context.subscriptions.push(configWatcher);
 
@@ -216,6 +297,72 @@ function setupFileWatchers(context: vscode.ExtensionContext): void {
     localCommandsWatcher.onDidDelete(debouncedRefreshCommands);
     context.subscriptions.push(localCommandsWatcher);
   }
+
+  // Agents watchers
+  const agentsGlobalPattern = new vscode.RelativePattern(
+    vscode.Uri.file(home),
+    '.config/opencode/agent/**/*.md',
+  );
+  const agentsGlobalWatcher = vscode.workspace.createFileSystemWatcher(agentsGlobalPattern);
+  agentsGlobalWatcher.onDidChange(debouncedRefreshAgents);
+  agentsGlobalWatcher.onDidCreate(debouncedRefreshAgents);
+  agentsGlobalWatcher.onDidDelete(debouncedRefreshAgents);
+  context.subscriptions.push(agentsGlobalWatcher);
+
+  if (workspaceFolders && workspaceFolders.length > 0) {
+    const agentsLocalPattern = new vscode.RelativePattern(
+      workspaceFolders[0]!,
+      '.opencode/agent/**/*.md',
+    );
+    const agentsLocalWatcher = vscode.workspace.createFileSystemWatcher(agentsLocalPattern);
+    agentsLocalWatcher.onDidChange(debouncedRefreshAgents);
+    agentsLocalWatcher.onDidCreate(debouncedRefreshAgents);
+    agentsLocalWatcher.onDidDelete(debouncedRefreshAgents);
+    context.subscriptions.push(agentsLocalWatcher);
+  }
+
+  // MCP project watcher
+  if (workspaceFolders && workspaceFolders.length > 0) {
+    const mcpPattern = new vscode.RelativePattern(workspaceFolders[0]!, '.mcp.json');
+    const mcpWatcher = vscode.workspace.createFileSystemWatcher(mcpPattern);
+    mcpWatcher.onDidChange(debouncedRefreshMcp);
+    mcpWatcher.onDidCreate(debouncedRefreshMcp);
+    mcpWatcher.onDidDelete(debouncedRefreshMcp);
+    context.subscriptions.push(mcpWatcher);
+  }
+
+  // Prompts watchers
+  const promptsGlobalPattern = new vscode.RelativePattern(
+    vscode.Uri.file(home),
+    '.config/opencode/prompts/**/*.{txt,md}',
+  );
+  const promptsGlobalWatcher = vscode.workspace.createFileSystemWatcher(promptsGlobalPattern);
+  promptsGlobalWatcher.onDidChange(debouncedRefreshPrompts);
+  promptsGlobalWatcher.onDidCreate(debouncedRefreshPrompts);
+  promptsGlobalWatcher.onDidDelete(debouncedRefreshPrompts);
+  context.subscriptions.push(promptsGlobalWatcher);
+
+  if (workspaceFolders && workspaceFolders.length > 0) {
+    const promptsLocalPattern = new vscode.RelativePattern(
+      workspaceFolders[0]!,
+      '.opencode/prompt/**/*.{txt,md}',
+    );
+    const promptsLocalWatcher = vscode.workspace.createFileSystemWatcher(promptsLocalPattern);
+    promptsLocalWatcher.onDidChange(debouncedRefreshPrompts);
+    promptsLocalWatcher.onDidCreate(debouncedRefreshPrompts);
+    promptsLocalWatcher.onDidDelete(debouncedRefreshPrompts);
+    context.subscriptions.push(promptsLocalWatcher);
+
+    const instructionsPattern = new vscode.RelativePattern(
+      workspaceFolders[0]!,
+      '{AGENTS.md,CLAUDE.md}',
+    );
+    const instructionsWatcher = vscode.workspace.createFileSystemWatcher(instructionsPattern);
+    instructionsWatcher.onDidChange(debouncedRefreshPrompts);
+    instructionsWatcher.onDidCreate(debouncedRefreshPrompts);
+    instructionsWatcher.onDidDelete(debouncedRefreshPrompts);
+    context.subscriptions.push(instructionsWatcher);
+  }
 }
 
 function debouncedRefreshSkills(): void {
@@ -226,6 +373,21 @@ function debouncedRefreshSkills(): void {
 function debouncedRefreshCommands(): void {
   if (commandsDebounceTimer) clearTimeout(commandsDebounceTimer);
   commandsDebounceTimer = setTimeout(() => refreshCommands(), 500);
+}
+
+function debouncedRefreshAgents(): void {
+  if (agentsDebounceTimer) clearTimeout(agentsDebounceTimer);
+  agentsDebounceTimer = setTimeout(() => refreshAgents(), 500);
+}
+
+function debouncedRefreshMcp(): void {
+  if (mcpDebounceTimer) clearTimeout(mcpDebounceTimer);
+  mcpDebounceTimer = setTimeout(() => refreshMcp(), 500);
+}
+
+function debouncedRefreshPrompts(): void {
+  if (promptsDebounceTimer) clearTimeout(promptsDebounceTimer);
+  promptsDebounceTimer = setTimeout(() => refreshPrompts(), 500);
 }
 
 async function refreshSkills(): Promise<void> {
@@ -245,6 +407,30 @@ async function refreshCommands(): Promise<void> {
   commandsView.setData(groups);
 }
 
+async function refreshAgents(): Promise<void> {
+  const workspaceFolders = vscode.workspace.workspaceFolders;
+  const workspaceRoot = workspaceFolders?.[0]?.uri.fsPath;
+
+  const result = await agentsScanner.scanAll(workspaceRoot);
+  agentsView.setData(result.config, result.global, result.local);
+}
+
+async function refreshMcp(): Promise<void> {
+  const workspaceFolders = vscode.workspace.workspaceFolders;
+  const workspaceRoot = workspaceFolders?.[0]?.uri.fsPath;
+
+  const result = await mcpScanner.scanAll(workspaceRoot);
+  mcpView.setData(result.global, result.project);
+}
+
+async function refreshPrompts(): Promise<void> {
+  const workspaceFolders = vscode.workspace.workspaceFolders;
+  const workspaceRoot = workspaceFolders?.[0]?.uri.fsPath;
+
+  const result = await promptsScanner.scanAll(workspaceRoot);
+  promptsView.setData(result.global, result.local);
+}
+
 function updateViewTitle(): void {
   vscode.commands.executeCommand(
     'setContext',
@@ -254,12 +440,18 @@ function updateViewTitle(): void {
 }
 
 export function deactivate(): void {
-  if (skillsDebounceTimer) {
-    clearTimeout(skillsDebounceTimer);
-    skillsDebounceTimer = undefined;
+  for (const timer of [
+    skillsDebounceTimer,
+    commandsDebounceTimer,
+    agentsDebounceTimer,
+    mcpDebounceTimer,
+    promptsDebounceTimer,
+  ]) {
+    if (timer) clearTimeout(timer);
   }
-  if (commandsDebounceTimer) {
-    clearTimeout(commandsDebounceTimer);
-    commandsDebounceTimer = undefined;
-  }
+  skillsDebounceTimer = undefined;
+  commandsDebounceTimer = undefined;
+  agentsDebounceTimer = undefined;
+  mcpDebounceTimer = undefined;
+  promptsDebounceTimer = undefined;
 }
