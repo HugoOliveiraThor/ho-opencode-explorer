@@ -4,6 +4,7 @@ import type { Skill } from '../../types';
 
 suite('SkillTreeDataProvider', () => {
   const globalSkill: Skill = {
+    itemType: 'skill',
     name: 'test-global',
     description: 'A global skill',
     path: '/home/user/.config/opencode/skills/test-global/SKILL.md',
@@ -12,6 +13,7 @@ suite('SkillTreeDataProvider', () => {
   };
 
   const localSkill: Skill = {
+    itemType: 'skill',
     name: 'test-local',
     description: 'A local skill',
     path: '/workspace/.opencode/skills/test-local/SKILL.md',

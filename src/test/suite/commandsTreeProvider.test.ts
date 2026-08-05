@@ -11,6 +11,7 @@ suite('CommandsTreeDataProvider', () => {
       label: 'From File',
       commands: [
         {
+          itemType: 'command',
           name: 'test-cmd',
           description: 'A test command',
           source: 'file',
@@ -24,6 +25,7 @@ suite('CommandsTreeDataProvider', () => {
       label: 'From opencode.json',
       commands: [
         {
+          itemType: 'command',
           name: 'inline-cmd',
           description: 'An inline command',
           source: 'json',
@@ -85,6 +87,7 @@ suite('CommandsTreeDataProvider', () => {
         label: 'From File',
         commands: [
           {
+            itemType: 'command',
             name: 'broken',
             description: '',
             source: 'file',

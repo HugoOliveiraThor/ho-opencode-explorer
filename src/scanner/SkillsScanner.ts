@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as YAML from 'yaml';
+import { extractFrontmatter } from './frontmatter.js';
 import type { Skill, SkillSource } from '../types.js';
 
 interface SkillFrontmatter {
@@ -94,10 +95,11 @@ export class SkillsScanner {
     const content = fs.readFileSync(filePath, 'utf-8');
 
     try {
-      const frontmatter = this.extractFrontmatter(content);
+      const frontmatter = extractFrontmatter(content);
       if (frontmatter) {
         const parsed = YAML.parse(frontmatter) as SkillFrontmatter;
         return {
+          itemType: 'skill',
           name: parsed.name || dirName,
           description: parsed.description || '',
           path: filePath,
@@ -107,6 +109,7 @@ export class SkillsScanner {
       }
     } catch (err) {
       return {
+        itemType: 'skill',
         name: dirName,
         description: '',
         path: filePath,
@@ -117,16 +120,12 @@ export class SkillsScanner {
     }
 
     return {
+      itemType: 'skill',
       name: dirName,
       description: '',
       path: filePath,
       enabled: true,
       source,
     };
-  }
-
-  private extractFrontmatter(content: string): string | null {
-    const match = content.match(/^---\n([\s\S]*?)\n---/);
-    return match ? match[1]! : null;
   }
 }

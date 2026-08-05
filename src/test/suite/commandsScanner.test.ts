@@ -1,6 +1,7 @@
 import * as assert from 'assert';
 import * as path from 'path';
 import { CommandsScanner } from '../../scanner/CommandsScanner.js';
+import { extractFrontmatter } from '../../scanner/frontmatter.js';
 
 suite('CommandsScanner', () => {
   const fixturesDir = path.resolve(
@@ -55,13 +56,13 @@ suite('CommandsScanner', () => {
 
   test('extracts frontmatter from markdown', () => {
     const content = '---\ndescription: hello\n---\nbody here';
-    const fm = scanner.extractFrontmatter(content);
+    const fm = extractFrontmatter(content);
     assert.strictEqual(fm, 'description: hello');
   });
 
   test('returns null for content without frontmatter', () => {
     const content = 'just raw content';
-    const fm = scanner.extractFrontmatter(content);
+    const fm = extractFrontmatter(content);
     assert.strictEqual(fm, null);
   });
 

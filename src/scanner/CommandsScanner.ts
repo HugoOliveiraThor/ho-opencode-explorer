@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as YAML from 'yaml';
+import { extractFrontmatter, extractBody } from './frontmatter.js';
 import type { Command, CommandSource, CommandGroup } from '../types.js';
 
 interface CommandFrontmatter {
@@ -72,11 +73,12 @@ export class CommandsScanner {
       const content = fs.readFileSync(filePath, 'utf-8');
 
       try {
-        const frontmatter = this.extractFrontmatter(content);
+        const frontmatter = extractFrontmatter(content);
         if (frontmatter) {
           const parsed = YAML.parse(frontmatter) as CommandFrontmatter;
-          const body = this.extractBody(content);
+          const body = extractBody(content);
           commands.push({
+            itemType: 'command',
             name,
             description: parsed.description || '',
             source,
@@ -85,6 +87,7 @@ export class CommandsScanner {
           });
         } else {
           commands.push({
+            itemType: 'command',
             name,
             description: '',
             source,
@@ -94,6 +97,7 @@ export class CommandsScanner {
         }
       } catch (err) {
         commands.push({
+          itemType: 'command',
           name,
           description: '',
           source,
@@ -121,6 +125,7 @@ export class CommandsScanner {
       if (!commandsSection) return [];
 
       return Object.entries(commandsSection).map(([name, entry]) => ({
+        itemType: 'command',
         name,
         description: entry.description || '',
         source: 'json' as const,
@@ -131,15 +136,5 @@ export class CommandsScanner {
     } catch {
       return [];
     }
-  }
-
-  extractFrontmatter(content: string): string | null {
-    const match = content.match(/^---\n([\s\S]*?)\n---/);
-    return match ? match[1]! : null;
-  }
-
-  private extractBody(content: string): string {
-    const match = content.match(/^---\n[\s\S]*?\n---\n([\s\S]*)$/);
-    return match ? match[1]!.trim() : '';
   }
 }
