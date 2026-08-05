@@ -1,0 +1,12 @@
+{
+  "command": {
+    "gsd-new-project": {
+      "description": "Inicie um projeto do zero",
+      "template": "Execute o comando /gsd-new-project do GSD."
+    },
+    "gsd-map-codebase": {
+      "description": "Mapeie uma base de codigo existente",
+      "template": "Execute o comando /gsd-map-codebase do GSD."
+    }
+  }
+}

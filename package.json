@@ -1,10 +1,11 @@
 {
   "name": "ho-opencode-explorer",
   "displayName": "HO OpenCode Explorer",
-  "description": "Browse and manage OpenCode skills in VS Code sidebar",
+  "description": "Browse and manage OpenCode skills and commands in VS Code sidebar",
   "version": "0.1.0",
   "publisher": "ho",
   "license": "MIT",
+  "icon": "resources/icon.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/ho/ho-opencode-explorer"
@@ -16,7 +17,8 @@
     "Other"
   ],
   "activationEvents": [
-    "onView:ho-opencode-skills"
+    "onView:ho-opencode-skills",
+    "onView:ho-opencode-commands"
   ],
   "main": "./dist/extension.js",
   "contributes": {
@@ -36,45 +38,80 @@
           "name": "Skills"
         },
         {
-          "id": "ho-opencode-skill-detail",
-          "name": "Skill Details",
+          "id": "ho-opencode-commands",
+          "name": "Commands"
+        },
+        {
+          "id": "ho-opencode-detail",
+          "name": "Details",
           "type": "webview"
         }
       ]
     },
     "commands": [
       {
-        "command": "ho-opencode-explorer.checkForUpdates",
+        "command": "_ho-opencode-explorer.checkForUpdates#sideBar",
         "title": "Check for Updates",
+        "category": "HO OpenCode Explorer",
         "icon": "$(refresh)"
       },
       {
-        "command": "ho-opencode-explorer.refreshSkills",
+        "command": "_ho-opencode-explorer.refreshSkills#sideBar",
         "title": "Refresh Skills",
+        "category": "HO OpenCode Explorer",
         "icon": "$(refresh)"
       },
       {
-        "command": "ho-opencode-explorer.openSkill",
-        "title": "Open SKILL.md"
+        "command": "_ho-opencode-explorer.refreshCommands#sideBar",
+        "title": "Refresh Commands",
+        "category": "HO OpenCode Explorer",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "_ho-opencode-explorer.openSkill#sideBar",
+        "title": "Open SKILL.md",
+        "category": "HO OpenCode Explorer",
+        "icon": "$(go-to-file)"
+      },
+      {
+        "command": "_ho-opencode-explorer.openCommand#sideBar",
+        "title": "Open Command File",
+        "category": "HO OpenCode Explorer",
+        "icon": "$(go-to-file)"
       }
     ],
     "menus": {
       "view/title": [
         {
-          "command": "ho-opencode-explorer.checkForUpdates",
+          "command": "_ho-opencode-explorer.checkForUpdates#sideBar",
           "when": "view == ho-opencode-skills",
           "group": "navigation"
         },
         {
-          "command": "ho-opencode-explorer.refreshSkills",
+          "command": "_ho-opencode-explorer.refreshSkills#sideBar",
           "when": "view == ho-opencode-skills",
+          "group": "navigation"
+        },
+        {
+          "command": "_ho-opencode-explorer.checkForUpdates#sideBar",
+          "when": "view == ho-opencode-commands",
+          "group": "navigation"
+        },
+        {
+          "command": "_ho-opencode-explorer.refreshCommands#sideBar",
+          "when": "view == ho-opencode-commands",
           "group": "navigation"
         }
       ],
       "view/item/context": [
         {
-          "command": "ho-opencode-explorer.openSkill",
+          "command": "_ho-opencode-explorer.openSkill#sideBar",
           "when": "view == ho-opencode-skills && viewItem == skill",
+          "group": "inline"
+        },
+        {
+          "command": "_ho-opencode-explorer.openCommand#sideBar",
+          "when": "view == ho-opencode-commands && viewItem == command",
           "group": "inline"
         }
       ]
@@ -118,5 +155,20 @@
   "dependencies": {
     "semver": "^7.6.0",
     "yaml": "^2.7.0"
+  },
+  "standard-version": {
+    "types": [
+      { "type": "feat", "section": "Features" },
+      { "type": "fix", "section": "Bug Fixes" },
+      { "type": "perf", "section": "Performance" },
+      { "type": "refactor", "section": "Refactoring" },
+      { "type": "docs", "section": "Documentation" },
+      { "type": "test", "section": "Tests" },
+      { "type": "ci", "section": "CI" },
+      { "type": "build", "section": "Build" },
+      { "type": "chore", "section": "Chores" },
+      { "type": "style", "section": "Style" },
+      { "type": "revert", "section": "Reverts" }
+    ]
   }
 }

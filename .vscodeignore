@@ -13,4 +13,5 @@ docs/**
 .husky/**
 .superpowers/**
 commitlint.config.js
-dist/test/**
+out/**
+*.map
