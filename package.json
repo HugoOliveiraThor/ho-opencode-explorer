@@ -2,7 +2,7 @@
   "name": "ho-opencode-explorer",
   "displayName": "HO OpenCode Explorer",
   "description": "Browse and manage OpenCode skills and commands in VS Code sidebar",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "publisher": "ho",
   "license": "MIT",
   "icon": "resources/icon.png",
@@ -203,17 +203,50 @@
   },
   "standard-version": {
     "types": [
-      { "type": "feat", "section": "Features" },
-      { "type": "fix", "section": "Bug Fixes" },
-      { "type": "perf", "section": "Performance" },
-      { "type": "refactor", "section": "Refactoring" },
-      { "type": "docs", "section": "Documentation" },
-      { "type": "test", "section": "Tests" },
-      { "type": "ci", "section": "CI" },
-      { "type": "build", "section": "Build" },
-      { "type": "chore", "section": "Chores" },
-      { "type": "style", "section": "Style" },
-      { "type": "revert", "section": "Reverts" }
+      {
+        "type": "feat",
+        "section": "Features"
+      },
+      {
+        "type": "fix",
+        "section": "Bug Fixes"
+      },
+      {
+        "type": "perf",
+        "section": "Performance"
+      },
+      {
+        "type": "refactor",
+        "section": "Refactoring"
+      },
+      {
+        "type": "docs",
+        "section": "Documentation"
+      },
+      {
+        "type": "test",
+        "section": "Tests"
+      },
+      {
+        "type": "ci",
+        "section": "CI"
+      },
+      {
+        "type": "build",
+        "section": "Build"
+      },
+      {
+        "type": "chore",
+        "section": "Chores"
+      },
+      {
+        "type": "style",
+        "section": "Style"
+      },
+      {
+        "type": "revert",
+        "section": "Reverts"
+      }
     ]
   }
 }
