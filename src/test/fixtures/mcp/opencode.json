@@ -1,0 +1,6 @@
+{
+  "mcp": {
+    "ai-memory": { "type": "remote", "url": "http://127.0.0.1:49374/mcp", "enabled": true },
+    "local-tool": { "type": "stdio", "command": "npx", "args": ["tool", "--serve"], "enabled": false }
+  }
+}

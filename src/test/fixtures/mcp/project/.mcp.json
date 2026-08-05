@@ -1,0 +1,5 @@
+{
+  "servers": {
+    "project-db": { "type": "http", "url": "https://db.local/mcp" }
+  }
+}
