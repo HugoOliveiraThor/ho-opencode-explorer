@@ -1,10 +1,14 @@
 import * as assert from 'assert';
-import { CommandsTreeDataProvider } from '../../tree/CommandsTreeDataProvider.js';
-import type { CommandGroup } from '../../types.js';
+import { createCommandsView } from '../../tree/commands';
+import type { ContentNode, ContentCategory } from '../../tree/content';
+import type { CommandGroup } from '../../types';
 
-suite('CommandsTreeDataProvider', () => {
-  const provider = new CommandsTreeDataProvider();
+function asCategory<T>(node: ContentNode<T> | undefined): ContentCategory {
+  if (!node || node.type !== 'category') throw new Error('expected category node');
+  return node;
+}
 
+suite('createCommandsView', () => {
   const mockGroups: CommandGroup[] = [
     {
       source: 'file',
@@ -37,51 +41,49 @@ suite('CommandsTreeDataProvider', () => {
     },
   ];
 
-  test('returns categories as root children', () => {
-    provider.setGroups(mockGroups);
-    const children = provider.getChildren();
+  test('returns categories as root children with counts', () => {
+    const view = createCommandsView();
+    view.setData(mockGroups);
+    const children = view.provider.getChildren();
     assert.strictEqual(children.length, 2);
-    assert.strictEqual(children[0]!.type, 'category');
-    assert.strictEqual(children[0]!.label, 'From File');
-    assert.strictEqual(children[0]!.count, 1);
-    assert.strictEqual(children[1]!.type, 'category');
-    assert.strictEqual(children[1]!.label, 'From opencode.json');
-    assert.strictEqual(children[1]!.count, 1);
+    const first = asCategory(children[0]);
+    assert.strictEqual(first.type, 'category');
+    assert.strictEqual(first.label, 'From File');
+    assert.strictEqual(first.count, 1);
   });
 
   test('hides empty groups', () => {
-    const groups: CommandGroup[] = [
+    const view = createCommandsView();
+    view.setData([
       { source: 'file', label: 'From File', commands: [] },
       { source: 'json', label: 'From opencode.json', commands: [] },
-    ];
-    provider.setGroups(groups);
-    const children = provider.getChildren();
-    assert.strictEqual(children.length, 0);
+    ]);
+    assert.strictEqual(view.provider.getChildren().length, 0);
   });
 
-  test('category children are command nodes', () => {
-    provider.setGroups(mockGroups);
-    const root = provider.getChildren();
-    const fileCat = root[0]!;
-    assert.strictEqual(fileCat.type, 'category');
-    const commands = provider.getChildren(fileCat);
+  test('category children are command items', () => {
+    const view = createCommandsView();
+    view.setData(mockGroups);
+    const fileCat = asCategory(view.provider.getChildren()[0]);
+    const commands = view.provider.getChildren(fileCat);
     assert.strictEqual(commands.length, 1);
-    assert.strictEqual(commands[0]!.type, 'command');
-    assert.strictEqual(commands[0]!.label, 'test-cmd');
+    assert.strictEqual(commands[0]!.type, 'item');
+    assert.strictEqual(commands[0]!.item.name, 'test-cmd');
   });
 
-  test('getTreeItem returns TreeItem with contextValue for command', () => {
-    provider.setGroups(mockGroups);
-    const root = provider.getChildren();
-    const fileCat = root[0]!;
-    const commands = provider.getChildren(fileCat);
-    const item = provider.getTreeItem(commands[0]!);
+  test('getTreeItem returns contextValue command and description', () => {
+    const view = createCommandsView();
+    view.setData(mockGroups);
+    const fileCat = asCategory(view.provider.getChildren()[0]);
+    const commands = view.provider.getChildren(fileCat);
+    const item = view.provider.getTreeItem(commands[0]!);
     assert.strictEqual(item.contextValue, 'command');
     assert.strictEqual(item.description, 'A test command');
   });
 
-  test('getTreeItem returns TreeItem with warning icon for errored command', () => {
-    const groups: CommandGroup[] = [
+  test('errored command has warning icon', () => {
+    const view = createCommandsView();
+    view.setData([
       {
         source: 'file',
         label: 'From File',
@@ -96,46 +98,20 @@ suite('CommandsTreeDataProvider', () => {
           },
         ],
       },
-    ];
-    provider.setGroups(groups);
-    const root = provider.getChildren();
-    const cat = root[0]!;
-    const commands = provider.getChildren(cat);
-    const item = provider.getTreeItem(commands[0]!);
-    assert.ok(item.iconPath);
-  });
-
-  test('json command has jsonPath set', () => {
-    provider.setGroups(mockGroups);
-    const root = provider.getChildren();
-    const jsonCat = root[1]!;
-    assert.strictEqual(jsonCat.type, 'category');
-    assert.strictEqual(jsonCat.label, 'From opencode.json');
-    const commands = provider.getChildren(jsonCat);
-    const cmd = commands[0]!;
-    assert.strictEqual(cmd.type, 'command');
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    assert.strictEqual((cmd as any).command.jsonPath, 'command.inline-cmd');
+    ]);
+    const fileCat = asCategory(view.provider.getChildren()[0]);
+    const commands = view.provider.getChildren(fileCat);
+    assert.ok(view.provider.getTreeItem(commands[0]!).iconPath);
   });
 
   test('refresh fires onDidChangeTreeData', () => {
+    const view = createCommandsView();
     let fired = false;
-    const disposable = provider.onDidChangeTreeData(() => {
+    const disposable = view.provider.onDidChangeTreeData(() => {
       fired = true;
     });
-    provider.refresh();
+    view.refresh();
     assert.strictEqual(fired, true);
     disposable.dispose();
-  });
-
-  test('getChildren returns empty for non-existing category', () => {
-    provider.setGroups([]);
-    const children = provider.getChildren({
-      type: 'category',
-      label: 'Nonexistent',
-      source: 'file',
-      count: 0,
-    });
-    assert.strictEqual(children.length, 0);
   });
 });

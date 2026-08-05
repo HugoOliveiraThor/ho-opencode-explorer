@@ -1,16 +1,16 @@
 import * as vscode from 'vscode';
 import { SkillsScanner } from './scanner/SkillsScanner';
 import { CommandsScanner } from './scanner/CommandsScanner';
-import { SkillTreeDataProvider } from './tree/SkillTreeDataProvider';
-import { CommandsTreeDataProvider } from './tree/CommandsTreeDataProvider';
+import { createSkillsView } from './tree/skills';
+import { createCommandsView } from './tree/commands';
 import { DetailPanel } from './panel/DetailPanel';
 import { SkillToggleManager } from './toggle/SkillToggleManager';
 import { UpdateService } from './update/UpdateService';
 
 let scanner: SkillsScanner;
 let commandsScanner: CommandsScanner;
-let treeProvider: SkillTreeDataProvider;
-let commandsTreeProvider: CommandsTreeDataProvider;
+let skillsView: ReturnType<typeof createSkillsView>;
+let commandsView: ReturnType<typeof createCommandsView>;
 let detailPanel: DetailPanel;
 let toggleManager: SkillToggleManager;
 let updateService: UpdateService;
@@ -21,22 +21,22 @@ let extensionVersion = '0.0.0';
 export function activate(context: vscode.ExtensionContext): void {
   scanner = new SkillsScanner();
   commandsScanner = new CommandsScanner();
-  treeProvider = new SkillTreeDataProvider();
-  commandsTreeProvider = new CommandsTreeDataProvider();
+  skillsView = createSkillsView();
+  commandsView = createCommandsView();
   toggleManager = new SkillToggleManager();
   updateService = new UpdateService();
   detailPanel = new DetailPanel();
 
   // Skills TreeView
   const skillsTreeView = vscode.window.createTreeView('ho-opencode-skills', {
-    treeDataProvider: treeProvider,
+    treeDataProvider: skillsView.provider,
     canSelectMany: false,
   });
   context.subscriptions.push(skillsTreeView);
 
   // Commands TreeView
   const commandsTreeView = vscode.window.createTreeView('ho-opencode-commands', {
-    treeDataProvider: commandsTreeProvider,
+    treeDataProvider: commandsView.provider,
     canSelectMany: false,
   });
   context.subscriptions.push(commandsTreeView);
@@ -53,8 +53,8 @@ export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(
     skillsTreeView.onDidChangeSelection((event) => {
       const node = event.selection[0];
-      if (node && node.type === 'skill') {
-        detailPanel.showSkill(node.skill);
+      if (node && node.type === 'item') {
+        detailPanel.showSkill(node.item);
       } else {
         detailPanel.clear();
       }
@@ -65,8 +65,8 @@ export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(
     commandsTreeView.onDidChangeSelection((event) => {
       const node = event.selection[0];
-      if (node && node.type === 'command') {
-        detailPanel.showCommand(node.command);
+      if (node && node.type === 'item') {
+        detailPanel.showCommand(node.item);
       } else {
         detailPanel.clear();
       }
@@ -77,11 +77,11 @@ export function activate(context: vscode.ExtensionContext): void {
   context.subscriptions.push(
     skillsTreeView.onDidChangeCheckboxState(async (event) => {
       for (const [node, state] of event.items) {
-        if (node.type === 'skill') {
+        if (node.type === 'item') {
           try {
             const newEnabled = state === vscode.TreeItemCheckboxState.Checked;
-            if (newEnabled !== node.skill.enabled) {
-              toggleManager.toggle(node.skill.path);
+            if (newEnabled !== node.item.enabled) {
+              toggleManager.toggle(node.item.path);
             }
           } catch (err) {
             vscode.window.showErrorMessage(
@@ -233,7 +233,7 @@ async function refreshSkills(): Promise<void> {
   const workspaceRoot = workspaceFolders?.[0]?.uri.fsPath;
 
   const { global, local } = await scanner.scanAll(workspaceRoot);
-  treeProvider.setSkills(global, local);
+  skillsView.setData(global, local);
   updateViewTitle();
 }
 
@@ -242,7 +242,7 @@ async function refreshCommands(): Promise<void> {
   const workspaceRoot = workspaceFolders?.[0]?.uri.fsPath;
 
   const groups = await commandsScanner.scanAll(workspaceRoot);
-  commandsTreeProvider.setGroups(groups);
+  commandsView.setData(groups);
 }
 
 function updateViewTitle(): void {

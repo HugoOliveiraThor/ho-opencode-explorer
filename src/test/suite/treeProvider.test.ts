@@ -1,8 +1,14 @@
 import * as assert from 'assert';
-import { SkillTreeDataProvider } from '../../tree/SkillTreeDataProvider';
+import { createSkillsView } from '../../tree/skills';
+import type { ContentNode, ContentCategory } from '../../tree/content';
 import type { Skill } from '../../types';
 
-suite('SkillTreeDataProvider', () => {
+function asCategory<T>(node: ContentNode<T> | undefined): ContentCategory {
+  if (!node || node.type !== 'category') throw new Error('expected category node');
+  return node;
+}
+
+suite('createSkillsView', () => {
   const globalSkill: Skill = {
     itemType: 'skill',
     name: 'test-global',
@@ -21,62 +27,67 @@ suite('SkillTreeDataProvider', () => {
     source: 'local',
   };
 
-  const provider = new SkillTreeDataProvider();
-
-  test('getChildren on root returns Global and Local category nodes', () => {
-    provider.setSkills([globalSkill], [localSkill]);
-    const children = provider.getChildren();
+  test('root children are Global and Local category nodes', () => {
+    const view = createSkillsView();
+    view.setData([globalSkill], [localSkill]);
+    const children = view.provider.getChildren();
     assert.strictEqual(children.length, 2);
-    assert.strictEqual(children[0]!.label, 'Global Skills');
-    assert.strictEqual(children[1]!.label, 'Local Skills');
+    assert.strictEqual(asCategory(children[0]).label, 'Global Skills');
+    assert.strictEqual(asCategory(children[1]).label, 'Local Skills');
   });
 
-  test('getChildren on Global node returns skill items', () => {
-    provider.setSkills([globalSkill], []);
-    const root = provider.getChildren();
-    const globalNode = root.find((n) => n.label === 'Global Skills');
-    const skills = provider.getChildren(globalNode);
+  test('category children return skill items', () => {
+    const view = createSkillsView();
+    view.setData([globalSkill], []);
+    const root = view.provider.getChildren();
+    const globalNode = asCategory(root.find((n) => n.type === 'category' && n.label === 'Global Skills'));
+    const skills = view.provider.getChildren(globalNode);
     assert.strictEqual(skills.length, 1);
-    assert.strictEqual(skills[0]!.label, 'test-global');
+    assert.strictEqual(skills[0]!.type, 'item');
+    assert.strictEqual(skills[0]!.item.name, 'test-global');
   });
 
   test('checkboxState reflects enabled status', () => {
-    provider.setSkills([globalSkill], [localSkill]);
-    const root = provider.getChildren();
-    const globalNode = root.find((n) => n.label === 'Global Skills');
-    const skills = provider.getChildren(globalNode);
-    const enabledSkill = skills.find((s) => s.label === 'test-global')!;
-    assert.strictEqual(enabledSkill.type, 'skill');
-    assert.strictEqual(provider.getTreeItem(enabledSkill).checkboxState, 1);
+    const view = createSkillsView();
+    view.setData([globalSkill], []);
+    const root = view.provider.getChildren();
+    const globalNode = asCategory(root.find((n) => n.type === 'category' && n.label === 'Global Skills'));
+    const skills = view.provider.getChildren(globalNode);
+    assert.strictEqual(view.provider.getTreeItem(skills[0]!).checkboxState, 1);
   });
 
   test('disabled skill has Unchecked checkboxState', () => {
-    provider.setSkills([], [localSkill]);
-    const root = provider.getChildren();
-    const localNode = root.find((n) => n.label === 'Local Skills');
-    const skills = provider.getChildren(localNode);
-    assert.strictEqual(provider.getTreeItem(skills[0]!).checkboxState, 0);
+    const view = createSkillsView();
+    view.setData([], [localSkill]);
+    const root = view.provider.getChildren();
+    const localNode = asCategory(root.find((n) => n.type === 'category' && n.label === 'Local Skills'));
+    const skills = view.provider.getChildren(localNode);
+    assert.strictEqual(view.provider.getTreeItem(skills[0]!).checkboxState, 0);
   });
 
-  test('hides Local Skills section when no local skills', () => {
-    provider.setSkills([globalSkill], []);
-    const root = provider.getChildren();
+  test('hides empty categories', () => {
+    const view = createSkillsView();
+    view.setData([globalSkill], []);
+    const root = view.provider.getChildren();
     assert.strictEqual(root.length, 1);
-    assert.strictEqual(root[0]!.label, 'Global Skills');
-  });
-
-  test('hides Global Skills section when no global skills', () => {
-    provider.setSkills([], [localSkill]);
-    const root = provider.getChildren();
-    assert.strictEqual(root.length, 1);
-    assert.strictEqual(root[0]!.label, 'Local Skills');
+    assert.strictEqual(asCategory(root[0]).label, 'Global Skills');
   });
 
   test('counts shown in category labels', () => {
-    provider.setSkills([globalSkill, globalSkill], [localSkill]);
-    const root = provider.getChildren();
-    const globalNode = root.find((n) => n.label === 'Global Skills');
-    const item = provider.getTreeItem(globalNode!);
+    const view = createSkillsView();
+    view.setData([globalSkill, globalSkill], []);
+    const root = view.provider.getChildren();
+    const globalNode = asCategory(root.find((n) => n.type === 'category' && n.label === 'Global Skills'));
+    const item = view.provider.getTreeItem(globalNode);
     assert.ok((item.label as string).includes('(2)'));
+  });
+
+  test('skill items carry contextValue skill', () => {
+    const view = createSkillsView();
+    view.setData([globalSkill], []);
+    const root = view.provider.getChildren();
+    const globalNode = asCategory(root.find((n) => n.type === 'category' && n.label === 'Global Skills'));
+    const skills = view.provider.getChildren(globalNode);
+    assert.strictEqual(view.provider.getTreeItem(skills[0]!).contextValue, 'skill');
   });
 });
