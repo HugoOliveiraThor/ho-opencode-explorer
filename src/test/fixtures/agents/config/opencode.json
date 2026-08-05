@@ -1,0 +1,12 @@
+{
+  "agent": {
+    "code-architect": {
+      "description": "Architecture reviewer",
+      "mode": "primary",
+      "model": "opencode/deepseek-v4-pro",
+      "temperature": 0.1,
+      "prompt": { "file": "./prompts/code-architect.txt" }
+    },
+    "plan": {}
+  }
+}
