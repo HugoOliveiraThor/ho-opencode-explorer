@@ -1,12 +1,12 @@
 {
   "command": {
     "gsd-new-project": {
-      "description": "Inicie um projeto do zero",
-      "template": "Execute o comando /gsd-new-project do GSD."
+      "description": "Start a project from scratch",
+      "template": "Run the /gsd-new-project command from GSD."
     },
     "gsd-map-codebase": {
-      "description": "Mapeie uma base de codigo existente",
-      "template": "Execute o comando /gsd-map-codebase do GSD."
+      "description": "Map an existing codebase",
+      "template": "Run the /gsd-map-codebase command from GSD."
     }
   }
 }

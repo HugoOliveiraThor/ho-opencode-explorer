@@ -80,8 +80,8 @@ suite('CommandsScanner', () => {
     const content = {
       command: {
         'gsd-new-project': {
-          description: 'Inicie um projeto do zero',
-          template: 'Execute o comando /gsd-new-project do GSD.',
+          description: 'Start a project from scratch',
+          template: 'Run the /gsd-new-project command from GSD.',
         },
       },
     };
@@ -95,7 +95,7 @@ suite('CommandsScanner', () => {
     }));
     assert.strictEqual(commands.length, 1);
     assert.strictEqual(commands[0]!.name, 'gsd-new-project');
-    assert.strictEqual(commands[0]!.description, 'Inicie um projeto do zero');
+    assert.strictEqual(commands[0]!.description, 'Start a project from scratch');
     assert.strictEqual(commands[0]!.jsonPath, 'command.gsd-new-project');
   });
 });

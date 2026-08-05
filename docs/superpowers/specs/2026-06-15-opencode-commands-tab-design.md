@@ -87,10 +87,10 @@ Unlike skills (where `name` comes from frontmatter), **the command name is the f
 ```markdown
 ## <!-- ~/.config/opencode/commands/gsd-new-project.md -->
 
-## description: Inicie um projeto do zero definindo stack e objetivos
+## description: Start a project from scratch by defining the stack and goals
 
-Execute o comando /gsd-new-project do GSD (Get Shit Done).
-Use o workflow em ~/.config/opencode/get-shit-done/workflows/new-project.md
+Run the /gsd-new-project command from GSD (Get Shit Done).
+Use the workflow in ~/.config/opencode/get-shit-done/workflows/new-project.md
 ```
 
 - **Filename** (minus `.md`) determines `Command.name`
@@ -104,8 +104,8 @@ Use o workflow em ~/.config/opencode/get-shit-done/workflows/new-project.md
 {
   "command": {
     "gsd-new-project": {
-      "description": "Inicie um projeto do zero definindo stack e objetivos",
-      "template": "Execute o comando /gsd-new-project..."
+      "description": "Start a project from scratch by defining the stack and goals",
+      "template": "Run the /gsd-new-project command..."
     }
   }
 }
