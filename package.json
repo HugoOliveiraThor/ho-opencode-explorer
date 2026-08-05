@@ -1,7 +1,7 @@
 {
   "name": "ho-opencode-explorer",
   "displayName": "HO OpenCode Explorer",
-  "description": "Browse and manage OpenCode skills and commands in VS Code sidebar",
+  "description": "Browse and manage OpenCode skills, commands, agents, MCP servers, and prompts directly from the VS Code sidebar",
   "version": "0.1.1",
   "publisher": "ho",
   "license": "MIT",
