@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.3](https://github.com/ho/ho-opencode-explorer/compare/v0.1.2...v0.1.3) (2026-08-06)
+
+
+### Bug Fixes
+
+* bind webview actions via event listeners ([bb958da](https://github.com/ho/ho-opencode-explorer/commit/bb958da5b6a5fb3b76277157cf8fdc7457556dd7))
+
 ### [0.1.2](https://github.com/ho/ho-opencode-explorer/compare/v0.1.1...v0.1.2) (2026-08-06)
 
 
