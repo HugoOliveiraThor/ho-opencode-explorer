@@ -121,7 +121,7 @@ Describe what this command does.
 
 `renderers/skill.ts` gains:
 - An **Edit** button (`✏️ Edit`) in the actions row when the skill has no `yamlError`.
-- An edit mode: a form with inputs for `name`, `description`, and an `enabled` checkbox, pre-filled from the skill, plus **Save** and **Cancel** buttons. Rendered inside the existing CSP/nonce scaffold.
+- An edit mode: a form with inputs for `name`, `description`, and an `enabled` checkbox, pre-filled from the skill, plus **Save** and **Cancel** buttons. Rendered inside the existing CSP/nonce scaffold. All pre-filled values are injected into `value="..."` attributes through `escapeAttr` (and text nodes through `escapeHtml`) so quotes/HTML in existing descriptions cannot break the form or inject markup.
 - Save posts `{ command: 'editSkill', path, name, description, enabled }`.
 
 `DetailPanel.ts` extends `onDidReceiveMessage` handling (validated):
