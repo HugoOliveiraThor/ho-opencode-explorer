@@ -2,6 +2,37 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.2](https://github.com/ho/ho-opencode-explorer/compare/v0.1.1...v0.1.2) (2026-08-06)
+
+
+### Features
+
+* add content creator for skills and commands ([6b3f0da](https://github.com/ho/ho-opencode-explorer/commit/6b3f0da4ad556e38f9aa55a9301ee4c483900e31))
+* add content mover between global and local ([d6a1b46](https://github.com/ho/ho-opencode-explorer/commit/d6a1b46f4d0a7fbe12b219bf6a13a640d1302a86))
+* add inline skill editing to detail panel ([c208846](https://github.com/ho/ho-opencode-explorer/commit/c20884613b334d3001fb81463c4cd91aba20fcc3))
+* add safe paths validation util ([ad93a60](https://github.com/ho/ho-opencode-explorer/commit/ad93a603d90dd79a64ff279b24c82d5363839c89))
+* add skill editor with atomic writes ([bcc390c](https://github.com/ho/ho-opencode-explorer/commit/bcc390c98f79eb9b53dfadd1356dcd745103798f))
+* wire create and move commands into extension ([d0f2075](https://github.com/ho/ho-opencode-explorer/commit/d0f2075c1277c1354be4589aed0582068a7738bc))
+
+
+### Bug Fixes
+
+* address verification findings ([d0c394a](https://github.com/ho/ho-opencode-explorer/commit/d0c394a443e43b31c98d86eec32a4a4f0d8779fc))
+
+
+### Chores
+
+* convert fixtures and docs to english ([fd352ca](https://github.com/ho/ho-opencode-explorer/commit/fd352caf75ccc7f8f329b3977b5e97b67b081ad3))
+* prepare repo for public release ([20c7b31](https://github.com/ho/ho-opencode-explorer/commit/20c7b3132e9b5ae3832bbb2e6d148baadf1d49da))
+
+
+### Documentation
+
+* add content editing design spec ([871eab4](https://github.com/ho/ho-opencode-explorer/commit/871eab4dc903b10ce5c96ce2139ae0f9511bd6c1))
+* add content editing implementation plan ([78faa8f](https://github.com/ho/ho-opencode-explorer/commit/78faa8f07209ccce6466bc9c9e5b29bb822cde9d))
+* refresh readme with full feature set and motivation ([cabd269](https://github.com/ho/ho-opencode-explorer/commit/cabd26989640d22e0b5467cbf8adefd691a1140c))
+* specify escapeAttr for edit form values ([6251378](https://github.com/ho/ho-opencode-explorer/commit/625137877c0adf75be423c7c4e6c3dda19bcfa83))
+
 ### 0.1.1 (2026-08-05)
 
 
