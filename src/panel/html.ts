@@ -78,8 +78,17 @@ export function htmlHead(webview: vscode.Webview, nonce: string): string {
 export function htmlFooter(nonce: string): string {
   return `<script nonce="${nonce}">
     const vscode = acquireVsCodeApi();
-    function openFile(path) { vscode.postMessage({ command: 'openFile', path }); }
-    function copyPath(path) { vscode.postMessage({ command: 'copyPath', path }); }
+    document.querySelectorAll('[data-action]').forEach((el) => {
+      el.addEventListener('click', () => {
+        const action = el.getAttribute('data-action');
+        const path = el.getAttribute('data-path');
+        if (action === 'openFile' && path) {
+          vscode.postMessage({ command: 'openFile', path });
+        } else if (action === 'copyPath' && path) {
+          vscode.postMessage({ command: 'copyPath', path });
+        }
+      });
+    });
   </script>
 </body>
 </html>`;

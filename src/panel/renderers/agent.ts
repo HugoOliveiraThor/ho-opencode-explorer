@@ -23,7 +23,7 @@ export function renderAgent(webview: vscode.Webview, nonce: string, agent: Agent
     ? `<div class="label">TOOLS</div><div class="chips">${agent.tools.map((t) => `<span class="chip">${escapeHtml(t)}</span>`).join('')}</div>`
     : '';
   const promptButton = agent.promptFile
-    ? `<button onclick="openFile('${escapeAttr(agent.promptFile)}')">📂 Open Prompt</button>`
+    ? `<button data-action="openFile" data-path="${escapeAttr(agent.promptFile)}">📂 Open Prompt</button>`
     : '';
 
   const body = `
@@ -38,9 +38,9 @@ export function renderAgent(webview: vscode.Webview, nonce: string, agent: Agent
   ${error}
   <hr>
   <div class="actions">
-    <button onclick="openFile('${escapeAttr(agent.path)}')">📂 Open Source File</button>
+    <button data-action="openFile" data-path="${escapeAttr(agent.path)}">📂 Open Source File</button>
     ${promptButton}
-    <button onclick="copyPath('${escapeAttr(agent.path)}')">📋 Copy Path</button>
+    <button data-action="copyPath" data-path="${escapeAttr(agent.path)}">📋 Copy Path</button>
   </div>`;
 
   return `${htmlHead(webview, nonce)}${body}${htmlFooter(nonce)}`;

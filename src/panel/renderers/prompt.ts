@@ -29,8 +29,8 @@ export function renderPrompt(webview: vscode.Webview, nonce: string, item: Promp
   ${preview}
   <hr>
   <div class="actions">
-    <button onclick="openFile('${escapeAttr(item.path)}')">📂 Open File</button>
-    <button onclick="copyPath('${escapeAttr(item.path)}')">📋 Copy Path</button>
+    <button data-action="openFile" data-path="${escapeAttr(item.path)}">📂 Open File</button>
+    <button data-action="copyPath" data-path="${escapeAttr(item.path)}">📋 Copy Path</button>
   </div>`;
 
   return `${htmlHead(webview, nonce)}${body}${htmlFooter(nonce)}`;

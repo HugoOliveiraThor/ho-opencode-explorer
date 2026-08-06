@@ -24,10 +24,10 @@ export function renderCommand(webview: vscode.Webview, nonce: string, command: C
       ? `<div class="label">SOURCE</div><code>${escapeHtml(command.path || '')}</code>`
       : `<div class="label">DEFINED IN</div><code>${escapeHtml(command.path || '')} → ${escapeHtml(command.jsonPath || '')}</code>`;
   const openButton = command.path
-    ? `<button onclick="openFile('${escapeAttr(command.path)}')">📂 ${command.source === 'file' ? 'Open File' : 'Open opencode.json'}</button>`
+    ? `<button data-action="openFile" data-path="${escapeAttr(command.path)}">📂 ${command.source === 'file' ? 'Open File' : 'Open opencode.json'}</button>`
     : '';
   const copyButton = command.path
-    ? `<button onclick="copyPath('${escapeAttr(command.path)}')">📋 Copy Path</button>`
+    ? `<button data-action="copyPath" data-path="${escapeAttr(command.path)}">📋 Copy Path</button>`
     : '';
 
   const body = `

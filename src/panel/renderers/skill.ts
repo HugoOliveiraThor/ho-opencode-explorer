@@ -17,7 +17,7 @@ export function renderSkill(webview: vscode.Webview, nonce: string, skill: Skill
     skill.enabled ? 'enabled' : 'disabled',
   );
   const error = skill.yamlError ? errorBlock('YAML Error', skill.yamlError) : '';
-  const editButton = skill.yamlError ? '' : `<button onclick="enterEdit()">✏️ Edit</button>`;
+  const editButton = skill.yamlError ? '' : `<button id="edit-btn">✏️ Edit</button>`;
 
   const body = `
   <div id="view-mode">
@@ -31,12 +31,12 @@ export function renderSkill(webview: vscode.Webview, nonce: string, skill: Skill
     ${error}
     <hr>
     <div class="actions">
-      <button onclick="openFile('${escapeAttr(skill.path)}')">📂 Open SKILL.md</button>
-      <button onclick="copyPath('${escapeAttr(skill.path)}')">📋 Copy Path</button>
+      <button data-action="openFile" data-path="${escapeAttr(skill.path)}">📂 Open SKILL.md</button>
+      <button data-action="copyPath" data-path="${escapeAttr(skill.path)}">📋 Copy Path</button>
       ${editButton}
     </div>
   </div>
-  <div id="edit-mode" style="display:none">
+  <div id="edit-form" data-path="${escapeAttr(skill.path)}" style="display:none">
     <div class="label">NAME</div>
     <input id="edit-name" type="text" value="${escapeAttr(skill.name)}" style="width:100%;box-sizing:border-box;margin-bottom:8px;padding:4px;background:var(--vscode-input-background);color:var(--vscode-input-foreground);border:1px solid var(--vscode-input-border,transparent);border-radius:2px;">
     <div class="label">DESCRIPTION</div>
@@ -44,32 +44,46 @@ export function renderSkill(webview: vscode.Webview, nonce: string, skill: Skill
     <div class="label">ENABLED</div>
     <input id="edit-enabled" type="checkbox" ${skill.enabled ? 'checked' : ''} style="margin-bottom:8px;">
     <div class="actions">
-      <button onclick="saveEdit()">💾 Save</button>
-      <button onclick="cancelEdit()">✖ Cancel</button>
+      <button id="save-btn">💾 Save</button>
+      <button id="cancel-btn">✖ Cancel</button>
     </div>
   </div>`;
 
   const script = `<script nonce="${nonce}">
     const vscode = acquireVsCodeApi();
-    function openFile(path) { vscode.postMessage({ command: 'openFile', path }); }
-    function copyPath(path) { vscode.postMessage({ command: 'copyPath', path }); }
+    const form = document.getElementById('edit-form');
     function enterEdit() {
       document.getElementById('view-mode').style.display = 'none';
-      document.getElementById('edit-mode').style.display = 'block';
+      document.getElementById('edit-form').style.display = 'block';
     }
     function cancelEdit() {
-      document.getElementById('edit-mode').style.display = 'none';
+      document.getElementById('edit-form').style.display = 'none';
       document.getElementById('view-mode').style.display = 'block';
     }
     function saveEdit() {
       vscode.postMessage({
         command: 'editSkill',
-        path: '${escapeAttr(skill.path)}',
+        path: form.getAttribute('data-path'),
         name: document.getElementById('edit-name').value,
         description: document.getElementById('edit-desc').value,
         enabled: document.getElementById('edit-enabled').checked
       });
     }
+    document.querySelectorAll('[data-action]').forEach((el) => {
+      el.addEventListener('click', () => {
+        const action = el.getAttribute('data-action');
+        const path = el.getAttribute('data-path');
+        if (action === 'openFile' && path) {
+          vscode.postMessage({ command: 'openFile', path });
+        } else if (action === 'copyPath' && path) {
+          vscode.postMessage({ command: 'copyPath', path });
+        }
+      });
+    });
+    const editBtn = document.getElementById('edit-btn');
+    if (editBtn) editBtn.addEventListener('click', enterEdit);
+    document.getElementById('save-btn').addEventListener('click', saveEdit);
+    document.getElementById('cancel-btn').addEventListener('click', cancelEdit);
   </script>
 </body>
 </html>`;

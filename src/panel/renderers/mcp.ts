@@ -23,7 +23,7 @@ export function renderMcp(webview: vscode.Webview, nonce: string, server: McpSer
       ? `<div class="label">COMMAND</div><code>${escapeHtml([server.command, ...(server.args ?? [])].join(' '))}</code>`
       : '';
   const copyUrlButton = server.url
-    ? `<button onclick="copyPath('${escapeAttr(server.url)}')">📋 Copy URL</button>`
+    ? `<button data-action="copyPath" data-path="${escapeAttr(server.url)}">📋 Copy URL</button>`
     : '';
 
   const body = `
@@ -39,9 +39,9 @@ export function renderMcp(webview: vscode.Webview, nonce: string, server: McpSer
   ${error}
   <hr>
   <div class="actions">
-    <button onclick="openFile('${escapeAttr(server.path)}')">📂 Open Config</button>
+    <button data-action="openFile" data-path="${escapeAttr(server.path)}">📂 Open Config</button>
     ${copyUrlButton}
-    <button onclick="copyPath('${escapeAttr(server.path)}')">📋 Copy Path</button>
+    <button data-action="copyPath" data-path="${escapeAttr(server.path)}">📋 Copy Path</button>
   </div>`;
 
   return `${htmlHead(webview, nonce)}${body}${htmlFooter(nonce)}`;
