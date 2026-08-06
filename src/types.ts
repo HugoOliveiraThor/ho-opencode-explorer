@@ -25,6 +25,7 @@ export interface Command {
   path?: string;
   template?: string;
   jsonPath?: string;
+  scope?: 'global' | 'local';
   error?: string;
 }
 

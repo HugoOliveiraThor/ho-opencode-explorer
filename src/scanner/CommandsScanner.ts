@@ -44,20 +44,24 @@ export class CommandsScanner {
     const commands: Command[] = [];
 
     if (fs.existsSync(this.globalCommandsDir)) {
-      commands.push(...this.scanCommandsDir(this.globalCommandsDir, 'file'));
+      commands.push(...this.scanCommandsDir(this.globalCommandsDir, 'file', 'global'));
     }
 
     if (workspaceRoot) {
       const localDir = path.join(workspaceRoot, this.localCommandsDir);
       if (fs.existsSync(localDir)) {
-        commands.push(...this.scanCommandsDir(localDir, 'file'));
+        commands.push(...this.scanCommandsDir(localDir, 'file', 'local'));
       }
     }
 
     return commands;
   }
 
-  scanCommandsDir(dirPath: string, source: CommandSource): Command[] {
+  scanCommandsDir(
+    dirPath: string,
+    source: CommandSource,
+    scope?: 'global' | 'local',
+  ): Command[] {
     if (!fs.existsSync(dirPath)) {
       return [];
     }
@@ -83,6 +87,7 @@ export class CommandsScanner {
             description: parsed.description || '',
             source,
             path: filePath,
+            scope,
             template: body || undefined,
           });
         } else {
@@ -92,6 +97,7 @@ export class CommandsScanner {
             description: '',
             source,
             path: filePath,
+            scope,
             template: content.trim() || undefined,
           });
         }
@@ -102,6 +108,7 @@ export class CommandsScanner {
           description: '',
           source,
           path: filePath,
+          scope,
           error: err instanceof Error ? err.message : 'Unknown YAML error',
         });
       }

@@ -108,6 +108,30 @@
         "title": "Open Prompt File",
         "category": "HO OpenCode Explorer",
         "icon": "$(go-to-file)"
+      },
+      {
+        "command": "_ho-opencode-explorer.newSkill#sideBar",
+        "title": "New Skill",
+        "category": "HO OpenCode Explorer",
+        "icon": "$(new-file)"
+      },
+      {
+        "command": "_ho-opencode-explorer.newCommand#sideBar",
+        "title": "New Command",
+        "category": "HO OpenCode Explorer",
+        "icon": "$(new-file)"
+      },
+      {
+        "command": "_ho-opencode-explorer.moveSkill#sideBar",
+        "title": "Move Skill",
+        "category": "HO OpenCode Explorer",
+        "icon": "$(arrow-swap)"
+      },
+      {
+        "command": "_ho-opencode-explorer.moveCommand#sideBar",
+        "title": "Move Command",
+        "category": "HO OpenCode Explorer",
+        "icon": "$(arrow-swap)"
       }
     ],
     "menus": {
@@ -129,6 +153,16 @@
         },
         {
           "command": "_ho-opencode-explorer.refreshCommands#sideBar",
+          "when": "view == ho-opencode-commands",
+          "group": "navigation"
+        },
+        {
+          "command": "_ho-opencode-explorer.newSkill#sideBar",
+          "when": "view == ho-opencode-skills",
+          "group": "navigation"
+        },
+        {
+          "command": "_ho-opencode-explorer.newCommand#sideBar",
           "when": "view == ho-opencode-commands",
           "group": "navigation"
         }
@@ -158,6 +192,16 @@
           "command": "_ho-opencode-explorer.openPrompt#sideBar",
           "when": "view == ho-opencode-prompts && viewItem == prompt",
           "group": "inline"
+        },
+        {
+          "command": "_ho-opencode-explorer.moveSkill#sideBar",
+          "when": "view == ho-opencode-skills && viewItem == skill",
+          "group": "navigation"
+        },
+        {
+          "command": "_ho-opencode-explorer.moveCommand#sideBar",
+          "when": "view == ho-opencode-commands && viewItem == command",
+          "group": "navigation"
         }
       ]
     }

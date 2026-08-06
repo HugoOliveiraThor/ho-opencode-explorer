@@ -13,7 +13,9 @@ import type { ContentNode } from './tree/content';
 import { DetailPanel } from './panel/DetailPanel';
 import { SkillToggleManager } from './toggle/SkillToggleManager';
 import { UpdateService } from './update/UpdateService';
-import type { DetailItem } from './types';
+import { ContentCreator } from './create/ContentCreator';
+import { ContentMover } from './move/ContentMover';
+import type { DetailItem, Skill, Command, Agent, McpServer, PromptItem } from './types';
 
 let scanner: SkillsScanner;
 let commandsScanner: CommandsScanner;
@@ -28,6 +30,8 @@ let promptsView: ReturnType<typeof createPromptsView>;
 let detailPanel: DetailPanel;
 let toggleManager: SkillToggleManager;
 let updateService: UpdateService;
+let contentCreator: ContentCreator;
+let contentMover: ContentMover;
 let skillsDebounceTimer: ReturnType<typeof setTimeout> | undefined;
 let commandsDebounceTimer: ReturnType<typeof setTimeout> | undefined;
 let agentsDebounceTimer: ReturnType<typeof setTimeout> | undefined;
@@ -48,7 +52,9 @@ export function activate(context: vscode.ExtensionContext): void {
   promptsView = createPromptsView();
   toggleManager = new SkillToggleManager();
   updateService = new UpdateService();
-  detailPanel = new DetailPanel();
+  detailPanel = new DetailPanel({ onSkillEdited });
+  contentCreator = new ContentCreator();
+  contentMover = new ContentMover();
 
   // Skills TreeView
   const skillsTreeView = vscode.window.createTreeView('ho-opencode-skills', {
@@ -150,8 +156,9 @@ export function activate(context: vscode.ExtensionContext): void {
   // Open Skill command
   const openSkillCommand = vscode.commands.registerCommand(
     '_ho-opencode-explorer.openSkill#sideBar',
-    (skillPath: string) => {
-      const uri = vscode.Uri.file(skillPath);
+    (node: ContentNode<Skill>) => {
+      if (node.type !== 'item') return;
+      const uri = vscode.Uri.file(node.item.path);
       vscode.commands.executeCommand('vscode.open', uri);
     },
   );
@@ -160,8 +167,9 @@ export function activate(context: vscode.ExtensionContext): void {
   // Open Command command
   const openCommandCommand = vscode.commands.registerCommand(
     '_ho-opencode-explorer.openCommand#sideBar',
-    (commandPath: string) => {
-      const uri = vscode.Uri.file(commandPath);
+    (node: ContentNode<Command>) => {
+      if (node.type !== 'item' || !node.item.path) return;
+      const uri = vscode.Uri.file(node.item.path);
       vscode.commands.executeCommand('vscode.open', uri);
     },
   );
@@ -170,8 +178,9 @@ export function activate(context: vscode.ExtensionContext): void {
   // Open Agent Source command
   const openAgentCommand = vscode.commands.registerCommand(
     '_ho-opencode-explorer.openAgent#sideBar',
-    (agentPath: string) => {
-      const uri = vscode.Uri.file(agentPath);
+    (node: ContentNode<Agent>) => {
+      if (node.type !== 'item') return;
+      const uri = vscode.Uri.file(node.item.path);
       vscode.commands.executeCommand('vscode.open', uri);
     },
   );
@@ -180,8 +189,9 @@ export function activate(context: vscode.ExtensionContext): void {
   // Open MCP Config command
   const openMcpCommand = vscode.commands.registerCommand(
     '_ho-opencode-explorer.openMcp#sideBar',
-    (mcpPath: string) => {
-      const uri = vscode.Uri.file(mcpPath);
+    (node: ContentNode<McpServer>) => {
+      if (node.type !== 'item') return;
+      const uri = vscode.Uri.file(node.item.path);
       vscode.commands.executeCommand('vscode.open', uri);
     },
   );
@@ -190,12 +200,106 @@ export function activate(context: vscode.ExtensionContext): void {
   // Open Prompt command
   const openPromptCommand = vscode.commands.registerCommand(
     '_ho-opencode-explorer.openPrompt#sideBar',
-    (promptPath: string) => {
-      const uri = vscode.Uri.file(promptPath);
+    (node: ContentNode<PromptItem>) => {
+      if (node.type !== 'item') return;
+      const uri = vscode.Uri.file(node.item.path);
       vscode.commands.executeCommand('vscode.open', uri);
     },
   );
   context.subscriptions.push(openPromptCommand);
+
+  // New Skill command
+  const newSkillCommand = vscode.commands.registerCommand(
+    '_ho-opencode-explorer.newSkill#sideBar',
+    async () => {
+      const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+      try {
+        await contentCreator.createSkill(workspaceRoot);
+        await refreshSkills();
+      } catch (err) {
+        if (err instanceof Error && err.message.includes('cancelled')) return;
+        vscode.window.showErrorMessage(
+          err instanceof Error ? err.message : 'Failed to create skill',
+        );
+      }
+    },
+  );
+  context.subscriptions.push(newSkillCommand);
+
+  // New Command command
+  const newCommandCommand = vscode.commands.registerCommand(
+    '_ho-opencode-explorer.newCommand#sideBar',
+    async () => {
+      const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+      try {
+        await contentCreator.createCommand(workspaceRoot);
+        await refreshCommands();
+      } catch (err) {
+        if (err instanceof Error && err.message.includes('cancelled')) return;
+        vscode.window.showErrorMessage(
+          err instanceof Error ? err.message : 'Failed to create command',
+        );
+      }
+    },
+  );
+  context.subscriptions.push(newCommandCommand);
+
+  // Move Skill command
+  const moveSkillCommand = vscode.commands.registerCommand(
+    '_ho-opencode-explorer.moveSkill#sideBar',
+    async (node: ContentNode<Skill>) => {
+      if (node.type !== 'item') return;
+      const item = node.item;
+      const dest = item.source === 'global' ? 'Local' : 'Global';
+      const action = await vscode.window.showWarningMessage(
+        `Move skill "${item.name}" to ${dest}? The original will be removed.`,
+        { modal: true },
+        'Move',
+        'Cancel',
+      );
+      if (action !== 'Move') return;
+      try {
+        const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+        contentMover.moveSkill(item.path, item.source, workspaceRoot);
+        await refreshSkills();
+      } catch (err) {
+        vscode.window.showErrorMessage(
+          err instanceof Error ? err.message : 'Failed to move skill',
+        );
+      }
+    },
+  );
+  context.subscriptions.push(moveSkillCommand);
+
+  // Move Command command
+  const moveCommandCommand = vscode.commands.registerCommand(
+    '_ho-opencode-explorer.moveCommand#sideBar',
+    async (node: ContentNode<Command>) => {
+      if (node.type !== 'item') return;
+      const scope = node.item.scope;
+      const pathValue = node.item.path;
+      if (!scope || !pathValue) return;
+      const item = node.item;
+      const dest = scope === 'global' ? 'Local' : 'Global';
+      const action = await vscode.window.showWarningMessage(
+        `Move command "${item.name}" to ${dest}? The original will be removed.`,
+        { modal: true },
+        'Move',
+        'Cancel',
+      );
+      if (action !== 'Move') return;
+      try {
+        const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+        contentMover.moveCommand(pathValue, scope, workspaceRoot);
+        await refreshCommands();
+      } catch (err) {
+        vscode.window.showErrorMessage(
+          err instanceof Error ? err.message : 'Failed to move command',
+        );
+      }
+    },
+  );
+  context.subscriptions.push(moveCommandCommand);
 
   setupFileWatchers(context);
 
@@ -208,6 +312,11 @@ export function activate(context: vscode.ExtensionContext): void {
   refreshAgents();
   refreshMcp();
   refreshPrompts();
+}
+
+function onSkillEdited(updated: Skill): void {
+  refreshSkills();
+  detailPanel.show(updated);
 }
 
 function onSelection<T extends DetailItem>(
