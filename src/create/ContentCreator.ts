@@ -52,6 +52,7 @@ export class ContentCreator {
     const filePath = resolveWithin(dirPath, `${name}.md`);
     if (!filePath) throw new Error('Invalid destination path');
     if (fs.existsSync(filePath)) throw new Error(`A command named "${name}" already exists`);
+    fs.mkdirSync(dirPath, { recursive: true });
     fs.writeFileSync(filePath, COMMAND_TEMPLATE, 'utf-8');
     return filePath;
   }

@@ -25,13 +25,14 @@ export class ContentMover {
   }
 
   moveSkill(filePath: string, source: 'global' | 'local', workspaceRoot?: string): string {
-    const dirName = path.basename(path.dirname(filePath));
+    const skillDir = path.dirname(filePath);
+    const dirName = path.basename(skillDir);
     const target = this.targetDir(source, workspaceRoot, 'skills');
     const targetPath = path.join(target, dirName);
     if (fs.existsSync(targetPath)) {
       throw new Error(`A skill named "${dirName}" already exists at the destination`);
     }
-    this.move(filePath, targetPath);
+    this.move(skillDir, targetPath);
     return targetPath;
   }
 
@@ -60,6 +61,7 @@ export class ContentMover {
   }
 
   private move(from: string, to: string): void {
+    fs.mkdirSync(path.dirname(to), { recursive: true });
     try {
       fs.renameSync(from, to);
     } catch (err) {
