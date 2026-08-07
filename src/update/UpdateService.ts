@@ -5,7 +5,7 @@ export class UpdateService {
   private readonly repoOwner: string;
   private readonly repoName: string;
 
-  constructor(repoOwner: string = 'ho', repoName: string = 'ho-opencode-explorer') {
+  constructor(repoOwner: string = 'HugoOliveiraThor', repoName: string = 'ho-opencode-explorer') {
     this.repoOwner = repoOwner;
     this.repoName = repoName;
   }

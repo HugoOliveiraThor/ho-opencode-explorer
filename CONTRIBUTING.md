@@ -3,7 +3,7 @@
 ## Development Setup
 
 ```bash
-git clone https://github.com/ho/ho-opencode-explorer.git
+git clone https://github.com/HugoOliveiraThor/ho-opencode-explorer.git
 cd ho-opencode-explorer
 npm install
 npm run compile

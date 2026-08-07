@@ -9,7 +9,7 @@
 ## Reporting a Vulnerability
 
 Please report security vulnerabilities through the GitHub repository's
-[private vulnerability reporting](https://github.com/ho/ho-opencode-explorer/security/advisories/new)
+[private vulnerability reporting](https://github.com/HugoOliveiraThor/ho-opencode-explorer/security/advisories/new)
 feature.
 
 You can expect an acknowledgment within 72 hours. If the report is accepted,

@@ -1,6 +1,6 @@
 # HO OpenCode Explorer
 
-[![CI](https://github.com/ho/ho-opencode-explorer/actions/workflows/ci.yml/badge.svg)](https://github.com/ho/ho-opencode-explorer/actions/workflows/ci.yml)
+[![CI](https://github.com/HugoOliveiraThor/ho-opencode-explorer/actions/workflows/ci.yml/badge.svg)](https://github.com/HugoOliveiraThor/ho-opencode-explorer/actions/workflows/ci.yml)
 [![Version](https://img.shields.io/visual-studio-marketplace/v/ho.ho-opencode-explorer)](https://marketplace.visualstudio.com/items?itemName=ho.ho-opencode-explorer)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
