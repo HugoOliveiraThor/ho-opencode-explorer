@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.4](https://github.com/ho/ho-opencode-explorer/compare/v0.1.3...v0.1.4) (2026-08-07)
+
+
+### Documentation
+
+* add screenshots section, changelog link and marketplace keywords ([70280a3](https://github.com/ho/ho-opencode-explorer/commit/70280a3493c67f4325fcfccf6511e543aaf6c4e3))
+
 ### [0.1.3](https://github.com/ho/ho-opencode-explorer/compare/v0.1.2...v0.1.3) (2026-08-06)
 
 
