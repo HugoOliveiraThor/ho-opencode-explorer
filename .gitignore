@@ -11,10 +11,13 @@ dist/
 
 # Superpowers brainstorm artifacts
 .superpowers/
+docs/
 
 # Environment & secrets
 .env
 .env.*
+!.env.example
+.npmrc
 *.local
 
 # IDE
@@ -22,6 +25,10 @@ dist/
 *.swp
 *.swo
 *~
+
+# Remote development
+.vscode-server/
+.history/
 
 # OS
 .DS_Store
@@ -36,6 +43,9 @@ Desktop.ini
 # Logs
 *.log
 npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
 # Coverage
 coverage/
@@ -51,3 +61,16 @@ out/
 # Temporary files
 tmp/
 temp/
+*.tmp
+*.bak
+
+# Merge leftovers
+*.orig
+*.rej
+
+# Tooling caches
+.eslintcache
+.cache/
+
+# Archives
+*.tgz
