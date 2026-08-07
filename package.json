@@ -6,6 +6,19 @@
   "publisher": "ho",
   "license": "MIT",
   "icon": "resources/icon.png",
+  "keywords": [
+    "opencode",
+    "open-code",
+    "ai",
+    "skills",
+    "agents",
+    "mcp",
+    "mcp-servers",
+    "prompts",
+    "commands",
+    "sidebar",
+    "explorer"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/ho/ho-opencode-explorer"

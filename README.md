@@ -8,6 +8,12 @@ Browse and manage your OpenCode setup directly from the VS Code sidebar — **sk
 
 If you live in VS Code and work with [OpenCode](https://github.com/anomalyco/opencode) every day, you spend a lot of time switching between your editor and the terminal to inspect what skills are available, which commands you have, how an agent is configured, or whether an MCP server is enabled. This extension brings all of that information into a native sidebar UI, right next to your code, so you can explore and manage your OpenCode setup in place.
 
+## Screenshots
+
+![Skills tab](images/screenshots/skills-tab.png)
+
+![Skill details with inline edit](images/screenshots/skill-details.png)
+
 ## Features
 
 Five native tree views in the activity bar, plus a shared detail panel:
@@ -56,6 +62,10 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and guidelines.
 ## Security
 
 See [SECURITY.md](SECURITY.md) for how to report a vulnerability.
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for release history.
 
 ## License
 
