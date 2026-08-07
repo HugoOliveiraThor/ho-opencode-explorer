@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.6](https://github.com/ho/ho-opencode-explorer/compare/v0.1.5...v0.1.6) (2026-08-07)
+
+
+### Chores
+
+* expand gitignore entries ([94cb4f9](https://github.com/ho/ho-opencode-explorer/commit/94cb4f983cb1aeb1943811dbb21e91f62e74dedc))
+
+
+### Documentation
+
+* add sidebar screenshots for the readme ([54ff474](https://github.com/ho/ho-opencode-explorer/commit/54ff474e886e2c1543f8f1cf70836e84132449f7))
+
 ### [0.1.5](https://github.com/ho/ho-opencode-explorer/compare/v0.1.4...v0.1.5) (2026-08-07)
 
 
