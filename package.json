@@ -258,6 +258,9 @@
     "semver": "^7.6.0",
     "yaml": "^2.7.0"
   },
+  "overrides": {
+    "serialize-javascript": "7.1.0"
+  },
   "standard-version": {
     "types": [
       {
