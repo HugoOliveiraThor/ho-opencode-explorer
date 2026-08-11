@@ -65,4 +65,12 @@ suite('SkillsScanner', () => {
     assert.ok(valid);
     assert.strictEqual(valid!.enabled, true);
   });
+
+  test('finds skills in a nested git plugin package cache dir', async () => {
+    const packagesDir = path.join(fixturesDir, 'opencode', 'packages');
+    const skills = await scanner.scanDirectory(packagesDir, 'global');
+    const skill = skills.find((s: Skill) => s.name === 'test-skill');
+    assert.ok(skill, 'expected to find test-skill nested in a git plugin package');
+    assert.strictEqual(skill!.source, 'global');
+  });
 });

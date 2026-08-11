@@ -66,13 +66,16 @@ export class SkillsScanner {
   }
 
   private isPackageDir(dirPath: string): boolean {
-    return dirPath.includes('opencode/packages');
+    return (
+      path.basename(dirPath) === 'packages' &&
+      path.basename(path.dirname(dirPath)) === 'opencode'
+    );
   }
 
   private async scanPackageDir(pkgPath: string, source: SkillSource): Promise<Skill[]> {
     const skills: Skill[] = [];
-    const nodeModules = path.join(pkgPath, 'node_modules');
-    if (!fs.existsSync(nodeModules)) return skills;
+    const nodeModules = this.findTopLevelNodeModules(pkgPath);
+    if (!nodeModules) return skills;
 
     const packages = fs.readdirSync(nodeModules, { withFileTypes: true });
     for (const pkg of packages) {
@@ -84,6 +87,20 @@ export class SkillsScanner {
       }
     }
     return skills;
+  }
+
+  private findTopLevelNodeModules(pkgPath: string, depth = 0): string | null {
+    if (depth > 10) return null;
+    const direct = path.join(pkgPath, 'node_modules');
+    if (fs.existsSync(direct)) return direct;
+
+    const entries = fs.readdirSync(pkgPath, { withFileTypes: true });
+    for (const entry of entries) {
+      if (!entry.isDirectory() || entry.name === 'node_modules') continue;
+      const found = this.findTopLevelNodeModules(path.join(pkgPath, entry.name), depth + 1);
+      if (found) return found;
+    }
+    return null;
   }
 
   private hasSkillFile(dirPath: string): boolean {
