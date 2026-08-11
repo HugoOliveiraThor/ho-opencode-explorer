@@ -8,31 +8,32 @@ import {
   BADGE_ERROR,
   errorBlock,
 } from '../html';
+import { truncateMiddle } from '../../util/truncate';
 import type { Skill } from '../../types';
 
 export function renderSkill(webview: vscode.Webview, nonce: string, skill: Skill): string {
-  const warningIcon = skill.yamlError ? '⚠️ ' : '';
   const enabledBadge = badge(
     skill.enabled ? BADGE_OK : BADGE_ERROR,
     skill.enabled ? 'enabled' : 'disabled',
   );
   const error = skill.yamlError ? errorBlock('YAML Error', skill.yamlError) : '';
-  const editButton = skill.yamlError ? '' : `<button id="edit-btn">✏️ Edit</button>`;
+  const editButton = skill.yamlError ? '' : `<button id="edit-btn">Edit</button>`;
+  const path = truncateMiddle(skill.path, 60);
 
   const body = `
   <div id="view-mode">
     <div class="header-row">
-      <h2>${warningIcon}${escapeHtml(skill.name)}</h2>
+      <h2>${escapeHtml(skill.name)}</h2>
       ${enabledBadge}
     </div>
-    <div class="path">${escapeHtml(skill.path)}</div>
+    <div class="path" title="${escapeAttr(skill.path)}">${escapeHtml(path)}</div>
     <span class="type-badge">${escapeHtml(skill.source)}</span>
     ${skill.description ? `<hr><div class="label">DESCRIPTION</div><div class="desc">${escapeHtml(skill.description)}</div>` : ''}
     ${error}
     <hr>
     <div class="actions">
-      <button data-action="openFile" data-path="${escapeAttr(skill.path)}">📂 Open SKILL.md</button>
-      <button data-action="copyPath" data-path="${escapeAttr(skill.path)}">📋 Copy Path</button>
+      <button data-action="openFile" data-path="${escapeAttr(skill.path)}">Open SKILL.md</button>
+      <button data-action="copyPath" data-path="${escapeAttr(skill.path)}">Copy Path</button>
       ${editButton}
     </div>
   </div>
@@ -44,8 +45,8 @@ export function renderSkill(webview: vscode.Webview, nonce: string, skill: Skill
     <div class="label">ENABLED</div>
     <input id="edit-enabled" type="checkbox" ${skill.enabled ? 'checked' : ''} style="margin-bottom:8px;">
     <div class="actions">
-      <button id="save-btn">💾 Save</button>
-      <button id="cancel-btn">✖ Cancel</button>
+      <button id="save-btn">Save</button>
+      <button id="cancel-btn">Cancel</button>
     </div>
   </div>`;
 
@@ -85,8 +86,8 @@ export function renderSkill(webview: vscode.Webview, nonce: string, skill: Skill
     document.getElementById('save-btn').addEventListener('click', saveEdit);
     document.getElementById('cancel-btn').addEventListener('click', cancelEdit);
   </script>
-</body>
-</html>`;
+  </body>
+  </html>`;
 
   return `${htmlHead(webview, nonce)}${body}${script}`;
 }

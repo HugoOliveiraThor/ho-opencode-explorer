@@ -9,6 +9,7 @@ import {
   BADGE_ERROR,
   errorBlock,
 } from '../html';
+import { truncateMiddle } from '../../util/truncate';
 import type { McpServer } from '../../types';
 
 export function renderMcp(webview: vscode.Webview, nonce: string, server: McpServer): string {
@@ -23,8 +24,9 @@ export function renderMcp(webview: vscode.Webview, nonce: string, server: McpSer
       ? `<div class="label">COMMAND</div><code>${escapeHtml([server.command, ...(server.args ?? [])].join(' '))}</code>`
       : '';
   const copyUrlButton = server.url
-    ? `<button data-action="copyPath" data-path="${escapeAttr(server.url)}">📋 Copy URL</button>`
+    ? `<button data-action="copyPath" data-path="${escapeAttr(server.url)}">Copy</button>`
     : '';
+  const path = truncateMiddle(server.path, 60);
 
   const body = `
   <div class="header-row">
@@ -34,14 +36,14 @@ export function renderMcp(webview: vscode.Webview, nonce: string, server: McpSer
       ${badge(BADGE_OK, server.type)}
     </div>
   </div>
-  <div class="path">${escapeHtml(server.path)}</div>
+  <div class="path" title="${escapeAttr(server.path)}">${escapeHtml(path)}</div>
   ${transport}
   ${error}
   <hr>
   <div class="actions">
-    <button data-action="openFile" data-path="${escapeAttr(server.path)}">📂 Open Config</button>
+    <button data-action="openFile" data-path="${escapeAttr(server.path)}">Open Config</button>
     ${copyUrlButton}
-    <button data-action="copyPath" data-path="${escapeAttr(server.path)}">📋 Copy Path</button>
+    <button data-action="copyPath" data-path="${escapeAttr(server.path)}">Copy Path</button>
   </div>`;
 
   return `${htmlHead(webview, nonce)}${body}${htmlFooter(nonce)}`;

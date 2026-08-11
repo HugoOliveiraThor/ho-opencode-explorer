@@ -39,7 +39,7 @@ export const BADGE_ERROR =
   'background:var(--vscode-inputValidation-errorBackground);color:var(--vscode-inputValidation-errorForeground);padding:1px 6px;border-radius:8px;font-size:10px';
 
 export function errorBlock(label: string, message: string): string {
-  return `<div style="margin-top:8px;padding:8px;background:var(--vscode-inputValidation-errorBackground);border:1px solid var(--vscode-inputValidation-errorBorder);border-radius:4px;font-size:11px"><strong>⚠️ ${escapeHtml(label)}:</strong> ${escapeHtml(message)}</div>`;
+  return `<div style="margin-top:8px;padding:8px;background:var(--vscode-inputValidation-errorBackground);border:1px solid var(--vscode-inputValidation-errorBorder);border-radius:4px;font-size:11px"><strong>${escapeHtml(label)}:</strong> ${escapeHtml(message)}</div>`;
 }
 
 export function htmlHead(webview: vscode.Webview, nonce: string): string {
