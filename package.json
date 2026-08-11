@@ -78,7 +78,7 @@
         "command": "_ho-opencode-explorer.checkForUpdates#sideBar",
         "title": "Check for Updates",
         "category": "HO OpenCode Explorer",
-        "icon": "$(refresh)"
+        "icon": "$(cloud-download)"
       },
       {
         "command": "_ho-opencode-explorer.refreshSkills#sideBar",

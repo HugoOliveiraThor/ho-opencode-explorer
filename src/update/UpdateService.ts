@@ -1,6 +1,13 @@
 import * as vscode from 'vscode';
 import * as semver from 'semver';
 
+export class NoReleasesError extends Error {
+  constructor(message = 'No releases found for this repository') {
+    super(message);
+    this.name = 'NoReleasesError';
+  }
+}
+
 export class UpdateService {
   private readonly repoOwner: string;
   private readonly repoName: string;
@@ -31,6 +38,9 @@ export class UpdateService {
       });
 
       if (!response.ok) {
+        if (response.status === 404) {
+          throw new NoReleasesError();
+        }
         throw new Error(`GitHub API returned ${response.status}`);
       }
 
@@ -51,10 +61,15 @@ export class UpdateService {
           `HO OpenCode Explorer is up to date (v${localVersion})`,
         );
       }
-    } catch {
-      vscode.window.showWarningMessage(
-        'Could not check for updates. Check your internet connection.',
-      );
+    } catch (err) {
+      vscode.window.showWarningMessage(this.getErrorMessage(err));
     }
+  }
+
+  getErrorMessage(err: unknown): string {
+    if (err instanceof NoReleasesError) {
+      return 'No releases published for this repository yet.';
+    }
+    return 'Could not check for updates. Check your internet connection.';
   }
 }

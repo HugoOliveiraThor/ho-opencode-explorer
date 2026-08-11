@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { UpdateService } from '../../update/UpdateService';
+import { UpdateService, NoReleasesError } from '../../update/UpdateService';
 
 suite('UpdateService', () => {
   test('isUpdateAvailable returns false when local is same as remote', () => {
@@ -36,5 +36,16 @@ suite('UpdateService', () => {
     const service = new UpdateService();
     assert.strictEqual(service.parseVersion('v0.1.0'), '0.1.0');
     assert.strictEqual(service.parseVersion('2.0.0'), '2.0.0');
+  });
+
+  test('error message distinguishes no-releases from network errors', () => {
+    const service = new UpdateService();
+    const noReleases = service.getErrorMessage(new NoReleasesError());
+    const network = service.getErrorMessage(new Error('fetch failed'));
+    assert.strictEqual(noReleases, 'No releases published for this repository yet.');
+    assert.strictEqual(
+      network,
+      'Could not check for updates. Check your internet connection.',
+    );
   });
 });
