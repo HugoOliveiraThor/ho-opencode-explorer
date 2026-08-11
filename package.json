@@ -40,6 +40,11 @@
           "id": "ho-opencode-explorer",
           "title": "HO OpenCode Explorer",
           "icon": "$(hubot)"
+        },
+        {
+          "id": "ho-opencode-health",
+          "title": "HO OpenCode Health",
+          "icon": "$(heart)"
         }
       ]
     },
@@ -53,6 +58,12 @@
           "id": "ho-opencode-detail",
           "name": "Details",
           "type": "webview"
+        }
+      ],
+      "ho-opencode-health": [
+        {
+          "id": "ho-opencode-health-main",
+          "name": "Health"
         }
       ]
     },
@@ -140,6 +151,24 @@
         "title": "Show Hidden Skills",
         "category": "HO OpenCode Explorer",
         "icon": "$(eye)"
+      },
+      {
+        "command": "_ho-opencode-explorer.openHealthIssue#sideBar",
+        "title": "Open File",
+        "category": "HO OpenCode Health",
+        "icon": "$(go-to-file)"
+      },
+      {
+        "command": "_ho-opencode-explorer.createMissingHealthFile#sideBar",
+        "title": "Create Missing File",
+        "category": "HO OpenCode Health",
+        "icon": "$(new-file)"
+      },
+      {
+        "command": "_ho-opencode-explorer.refreshHealth#sideBar",
+        "title": "Refresh Health",
+        "category": "HO OpenCode Health",
+        "icon": "$(refresh)"
       }
     ],
     "menus": {
@@ -173,6 +202,11 @@
           "command": "_ho-opencode-explorer.showHiddenSkills#sideBar",
           "when": "view == ho-opencode-explorer-main",
           "group": "navigation@5"
+        },
+        {
+          "command": "_ho-opencode-explorer.refreshHealth#sideBar",
+          "when": "view == ho-opencode-health-main",
+          "group": "navigation"
         }
       ],
       "view/item/context": [
@@ -215,6 +249,16 @@
           "command": "_ho-opencode-explorer.hideSkill#sideBar",
           "when": "view == ho-opencode-explorer-main && viewItem == skill",
           "group": "navigation@1"
+        },
+        {
+          "command": "_ho-opencode-explorer.openHealthIssue#sideBar",
+          "when": "view == ho-opencode-health-main && viewItem == issue",
+          "group": "inline"
+        },
+        {
+          "command": "_ho-opencode-explorer.createMissingHealthFile#sideBar",
+          "when": "view == ho-opencode-health-main && viewItem == issue",
+          "group": "navigation"
         }
       ]
     }

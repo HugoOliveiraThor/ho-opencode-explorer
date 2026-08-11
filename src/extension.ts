@@ -12,6 +12,8 @@ import { UpdateService } from './update/UpdateService';
 import { ContentCreator } from './create/ContentCreator';
 import { ContentMover } from './move/ContentMover';
 import { HiddenSkillsManager, type HiddenSkillsStore } from './hidden/HiddenSkillsManager';
+import { HealthChecker } from './health/HealthChecker';
+import { HealthTreeProvider, type HealthNode } from './health/HealthTreeProvider';
 import type { DetailItem, Skill } from './types';
 
 let scanner: SkillsScanner;
@@ -26,6 +28,10 @@ let updateService: UpdateService;
 let contentCreator: ContentCreator;
 let contentMover: ContentMover;
 let hiddenSkillsManager: HiddenSkillsManager;
+let healthChecker: HealthChecker;
+let healthProvider: HealthTreeProvider;
+let healthTreeView: vscode.TreeView<HealthNode>;
+let healthDebounceTimer: ReturnType<typeof setTimeout> | undefined;
 let skillsDebounceTimer: ReturnType<typeof setTimeout> | undefined;
 let commandsDebounceTimer: ReturnType<typeof setTimeout> | undefined;
 let agentsDebounceTimer: ReturnType<typeof setTimeout> | undefined;
@@ -58,6 +64,8 @@ export function activate(context: vscode.ExtensionContext): void {
   detailPanel = new DetailPanel({ onSkillEdited });
   contentCreator = new ContentCreator();
   contentMover = new ContentMover();
+  healthChecker = new HealthChecker();
+  healthProvider = new HealthTreeProvider();
 
   // Single consolidated TreeView
   const explorerTreeView = vscode.window.createTreeView('ho-opencode-explorer-main', {
@@ -65,6 +73,13 @@ export function activate(context: vscode.ExtensionContext): void {
     canSelectMany: false,
   });
   context.subscriptions.push(explorerTreeView);
+
+  // Health Check view
+  healthTreeView = vscode.window.createTreeView('ho-opencode-health-main', {
+    treeDataProvider: healthProvider,
+    canSelectMany: false,
+  });
+  context.subscriptions.push(healthTreeView);
 
   // Shared Detail Panel
   const panelRegistration = vscode.window.registerWebviewViewProvider(
@@ -149,6 +164,55 @@ export function activate(context: vscode.ExtensionContext): void {
     },
   );
   context.subscriptions.push(showHiddenSkillsCommand);
+
+  // Health commands
+  const refreshHealthCommand = vscode.commands.registerCommand(
+    '_ho-opencode-explorer.refreshHealth#sideBar',
+    () => refreshHealth(),
+  );
+  context.subscriptions.push(refreshHealthCommand);
+
+  const openHealthIssueCommand = vscode.commands.registerCommand(
+    '_ho-opencode-explorer.openHealthIssue#sideBar',
+    (node: HealthNode) => {
+      if (node.type !== 'issue') return;
+      const issue = node.issue;
+      const target = issue.relatedFile ?? issue.file;
+      const options: vscode.TextDocumentShowOptions = issue.line
+        ? { selection: new vscode.Range(issue.line - 1, 0, issue.line - 1, 0) }
+        : { preserveFocus: false };
+      vscode.commands.executeCommand('vscode.open', target, options);
+    },
+  );
+  context.subscriptions.push(openHealthIssueCommand);
+
+  const createMissingHealthFileCommand = vscode.commands.registerCommand(
+    '_ho-opencode-explorer.createMissingHealthFile#sideBar',
+    async (node: HealthNode) => {
+      if (node.type !== 'issue' || !node.issue.relatedFile) return;
+      const file = node.issue.relatedFile;
+      const action = await vscode.window.showWarningMessage(
+        `Create missing file ${file.fsPath}?`,
+        { modal: true },
+        'Create',
+        'Cancel',
+      );
+      if (action !== 'Create') return;
+      try {
+        const fs = await import('fs');
+        const path = await import('path');
+        fs.mkdirSync(path.dirname(file.fsPath), { recursive: true });
+        fs.writeFileSync(file.fsPath, '');
+        vscode.commands.executeCommand('vscode.open', file);
+        await refreshHealth();
+      } catch (err) {
+        vscode.window.showErrorMessage(
+          err instanceof Error ? err.message : 'Failed to create file',
+        );
+      }
+    },
+  );
+  context.subscriptions.push(createMissingHealthFileCommand);
 
   // Open commands (each only handles its own item type)
   const openSkillCommand = vscode.commands.registerCommand(
@@ -299,6 +363,7 @@ export function activate(context: vscode.ExtensionContext): void {
   refreshAgents();
   refreshMcp();
   refreshPrompts();
+  refreshHealth();
 }
 
 function onSkillEdited(updated: Skill): void {
@@ -460,24 +525,33 @@ function debouncedRefreshSkills(): void {
   skillsDebounceTimer = setTimeout(() => refreshSkills(), 500);
 }
 
+function debouncedRefreshHealth(): void {
+  if (healthDebounceTimer) clearTimeout(healthDebounceTimer);
+  healthDebounceTimer = setTimeout(() => refreshHealth(), 500);
+}
+
 function debouncedRefreshCommands(): void {
   if (commandsDebounceTimer) clearTimeout(commandsDebounceTimer);
   commandsDebounceTimer = setTimeout(() => refreshCommands(), 500);
+  debouncedRefreshHealth();
 }
 
 function debouncedRefreshAgents(): void {
   if (agentsDebounceTimer) clearTimeout(agentsDebounceTimer);
   agentsDebounceTimer = setTimeout(() => refreshAgents(), 500);
+  debouncedRefreshHealth();
 }
 
 function debouncedRefreshMcp(): void {
   if (mcpDebounceTimer) clearTimeout(mcpDebounceTimer);
   mcpDebounceTimer = setTimeout(() => refreshMcp(), 500);
+  debouncedRefreshHealth();
 }
 
 function debouncedRefreshPrompts(): void {
   if (promptsDebounceTimer) clearTimeout(promptsDebounceTimer);
   promptsDebounceTimer = setTimeout(() => refreshPrompts(), 500);
+  debouncedRefreshHealth();
 }
 
 async function refreshSkills(): Promise<void> {
@@ -521,6 +595,18 @@ async function refreshPrompts(): Promise<void> {
   explorerView.setPrompts(result.global, result.local);
 }
 
+async function refreshHealth(): Promise<void> {
+  const workspaceFolders = vscode.workspace.workspaceFolders;
+  const workspaceRoot = workspaceFolders?.[0]?.uri.fsPath;
+
+  const issues = await healthChecker.scan(workspaceRoot);
+  healthProvider.setIssues(issues);
+  healthTreeView.badge = {
+    value: healthProvider.errorCount,
+    tooltip: `${healthProvider.errorCount} configuration error${healthProvider.errorCount === 1 ? '' : 's'}`,
+  };
+}
+
 function updateViewTitle(): void {
   vscode.commands.executeCommand(
     'setContext',
@@ -536,6 +622,7 @@ export function deactivate(): void {
     agentsDebounceTimer,
     mcpDebounceTimer,
     promptsDebounceTimer,
+    healthDebounceTimer,
   ]) {
     if (timer) clearTimeout(timer);
   }
@@ -544,4 +631,5 @@ export function deactivate(): void {
   agentsDebounceTimer = undefined;
   mcpDebounceTimer = undefined;
   promptsDebounceTimer = undefined;
+  healthDebounceTimer = undefined;
 }

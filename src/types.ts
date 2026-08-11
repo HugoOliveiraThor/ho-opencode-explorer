@@ -47,6 +47,7 @@ export interface Agent {
   model?: string;
   temperature?: number;
   promptFile?: string;
+  promptFileRef?: string;
   tools?: string[];
   source: AgentSource;
   path: string;

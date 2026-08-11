@@ -101,6 +101,7 @@ export class AgentsScanner {
         model: typeof entry.model === 'string' ? entry.model : undefined,
         temperature: typeof entry.temperature === 'number' ? entry.temperature : undefined,
         promptFile: this.resolvePromptFile(entry.prompt),
+        promptFileRef: this.resolvePromptFileRef(entry.prompt),
         tools: this.asStringArray(entry.tools),
         source: 'config' as const,
         path: this.configPath,
@@ -122,6 +123,12 @@ export class AgentsScanner {
   }
 
   private resolvePromptFile(prompt: unknown): string | undefined {
+    const resolved = this.resolvePromptFileRef(prompt);
+    if (!resolved) return undefined;
+    return fs.existsSync(resolved) ? resolved : undefined;
+  }
+
+  private resolvePromptFileRef(prompt: unknown): string | undefined {
     let ref: string | undefined;
     if (typeof prompt === 'string') {
       ref = prompt;
@@ -130,8 +137,7 @@ export class AgentsScanner {
       if (typeof file === 'string') ref = file;
     }
     if (!ref) return undefined;
-    const resolved = path.resolve(path.dirname(this.configPath), ref);
-    return fs.existsSync(resolved) ? resolved : undefined;
+    return path.resolve(path.dirname(this.configPath), ref);
   }
 
   private asStringArray(value: unknown): string[] | undefined {

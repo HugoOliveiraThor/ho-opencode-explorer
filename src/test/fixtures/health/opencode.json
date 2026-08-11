@@ -1,0 +1,16 @@
+{
+  "agent": {
+    "broken-prompt": {
+      "description": "References a missing prompt",
+      "mode": "primary",
+      "prompt": { "file": "./prompts/does-not-exist.txt" }
+    }
+  },
+  "mcp": {
+    "ghost-server": {
+      "type": "stdio",
+      "command": "ho-this-command-does-not-exist-12345",
+      "args": ["--serve"]
+    }
+  }
+}
