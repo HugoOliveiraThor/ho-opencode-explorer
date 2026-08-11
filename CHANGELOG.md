@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.2.0](https://github.com/HugoOliveiraThor/ho-opencode-explorer/compare/v0.1.9...v0.2.0) (2026-08-11)
+
+
+### Features
+
+* add HiddenSkillsManager with memento-backed store abstraction ([4b7607b](https://github.com/HugoOliveiraThor/ho-opencode-explorer/commit/4b7607bac69bcbd5cc67596b0203fa3019c630a7))
+* add truncateEnd and truncateMiddle utilities ([0156d23](https://github.com/HugoOliveiraThor/ho-opencode-explorer/commit/0156d23ef78a6c55f8323082324744a743efc570))
+* consolidate five views into a single sectioned explorer tree ([11068d7](https://github.com/HugoOliveiraThor/ho-opencode-explorer/commit/11068d7a31ec68fbde49683442be4bdc650557a9))
+
+
+### Refactoring
+
+* clean up detail panel renderers (no emojis, reduced badges, truncated paths) ([0c28584](https://github.com/HugoOliveiraThor/ho-opencode-explorer/commit/0c28584f76b04945196be3c7d3f9a9407aa021f3))
+
 ### [0.1.9](https://github.com/HugoOliveiraThor/ho-opencode-explorer/compare/v0.1.8...v0.1.9) (2026-08-11)
 
 
