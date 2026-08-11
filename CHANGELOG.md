@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.8](https://github.com/HugoOliveiraThor/ho-opencode-explorer/compare/v0.1.7...v0.1.8) (2026-08-11)
+
+
+### Bug Fixes
+
+* scan skills from nested git plugin packages ([d3c9698](https://github.com/HugoOliveiraThor/ho-opencode-explorer/commit/d3c9698864a351cdf158061af69dbfe5cca1b63f))
+
 ### [0.1.7](https://github.com/HugoOliveiraThor/ho-opencode-explorer/compare/v0.1.6...v0.1.7) (2026-08-07)
 
 
