@@ -1,23 +1,25 @@
 import * as vscode from 'vscode';
-import { ContentTreeDataProvider, type ContentCategory, type ContentProviderConfig } from './content';
-import type { McpServer } from '../types';
+import type { ContentCategory, ContentItemNode, SectionDefinition } from './content';
+import type { DetailItem, McpServer } from '../types';
 
-export interface McpView {
-  provider: ContentTreeDataProvider<McpServer>;
+export interface McpSection {
+  section: SectionDefinition<DetailItem>;
   setData(global: McpServer[], project: McpServer[]): void;
-  refresh(): void;
 }
 
-export function createMcpView(): McpView {
+export function createMcpSection(): McpSection {
   let global: McpServer[] = [];
   let project: McpServer[] = [];
 
-  const config: ContentProviderConfig<McpServer> = {
-    getCategories: () => {
+  const section: SectionDefinition<DetailItem> = {
+    key: 'mcp',
+    label: 'MCP Servers',
+    getCategories: (): ContentCategory[] => {
       const categories: ContentCategory[] = [];
       if (global.length > 0) {
         categories.push({
           type: 'category',
+          sectionKey: 'mcp',
           key: 'global',
           label: 'Global',
           count: global.length,
@@ -26,6 +28,7 @@ export function createMcpView(): McpView {
       if (project.length > 0) {
         categories.push({
           type: 'category',
+          sectionKey: 'mcp',
           key: 'project',
           label: 'Project',
           count: project.length,
@@ -33,28 +36,26 @@ export function createMcpView(): McpView {
       }
       return categories;
     },
-    getCategoryChildren: (category) => {
+    getCategoryChildren: (category): ContentItemNode<DetailItem>[] => {
       const servers = category.key === 'global' ? global : project;
       return servers.map((server) => ({ type: 'item', item: server }));
     },
-    toTreeItem: (server) => {
-      const item = new vscode.TreeItem(server.name);
-      item.contextValue = 'mcp';
-      item.description = server.enabled ? 'enabled' : 'disabled';
-      item.tooltip = server.url ?? server.command ?? server.name;
-      item.iconPath = server.error ? new vscode.ThemeIcon('warning') : new vscode.ThemeIcon('plug');
-      return item;
+    toTreeItem: (item: DetailItem): vscode.TreeItem => {
+      if (item.itemType !== 'mcp') throw new Error('Expected mcp item');
+      const treeItem = new vscode.TreeItem(item.name);
+      treeItem.contextValue = 'mcp';
+      treeItem.description = item.enabled ? 'enabled' : 'disabled';
+      treeItem.tooltip = item.path || item.url || item.command || item.name;
+      treeItem.iconPath = item.error ? new vscode.ThemeIcon('warning') : new vscode.ThemeIcon('plug');
+      return treeItem;
     },
   };
 
-  const provider = new ContentTreeDataProvider<McpServer>(config);
   return {
-    provider,
+    section,
     setData: (g, p) => {
       global = g;
       project = p;
-      provider.refresh();
     },
-    refresh: () => provider.refresh(),
   };
 }

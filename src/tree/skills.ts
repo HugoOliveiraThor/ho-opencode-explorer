@@ -1,65 +1,74 @@
 import * as vscode from 'vscode';
-import { ContentTreeDataProvider, type ContentCategory, type ContentProviderConfig } from './content';
-import type { Skill } from '../types';
+import { truncateEnd } from '../util/truncate';
+import type { ContentCategory, ContentItemNode, SectionDefinition } from './content';
+import type { DetailItem, Skill } from '../types';
 
-export interface SkillsView {
-  provider: ContentTreeDataProvider<Skill>;
+export interface SkillsSection {
+  section: SectionDefinition<DetailItem>;
   setData(global: Skill[], local: Skill[]): void;
-  refresh(): void;
 }
 
-export function createSkillsView(): SkillsView {
+export function createSkillsSection(getHiddenPaths: () => string[]): SkillsSection {
   let global: Skill[] = [];
   let local: Skill[] = [];
 
-  const config: ContentProviderConfig<Skill> = {
-    getCategories: () => {
+  const visible = (skills: Skill[]): Skill[] =>
+    skills.filter((skill) => !getHiddenPaths().includes(skill.path));
+
+  const toTreeItem = (item: DetailItem): vscode.TreeItem => {
+    if (item.itemType !== 'skill') throw new Error('Expected skill item');
+    const treeItem = new vscode.TreeItem(item.name);
+    treeItem.contextValue = 'skill';
+    treeItem.checkboxState = item.enabled
+      ? vscode.TreeItemCheckboxState.Checked
+      : vscode.TreeItemCheckboxState.Unchecked;
+    treeItem.description = item.description ? truncateEnd(item.description, 40) : undefined;
+    treeItem.tooltip = item.path;
+    if (item.yamlError) {
+      treeItem.iconPath = new vscode.ThemeIcon('warning');
+    }
+    return treeItem;
+  };
+
+  const section: SectionDefinition<DetailItem> = {
+    key: 'skill',
+    label: 'Skills',
+    getCategories: (): ContentCategory[] => {
       const categories: ContentCategory[] = [];
-      if (global.length > 0) {
+      const g = visible(global);
+      const l = visible(local);
+      if (g.length > 0) {
         categories.push({
           type: 'category',
+          sectionKey: 'skill',
           key: 'global',
           label: 'Global Skills',
-          count: global.length,
+          count: g.length,
         });
       }
-      if (local.length > 0) {
+      if (l.length > 0) {
         categories.push({
           type: 'category',
+          sectionKey: 'skill',
           key: 'local',
           label: 'Local Skills',
-          count: local.length,
+          count: l.length,
         });
       }
       return categories;
     },
-    getCategoryChildren: (category) => {
-      const skills = category.key === 'global' ? global : local;
+    getCategoryChildren: (category): ContentItemNode<DetailItem>[] => {
+      const skills = category.key === 'global' ? visible(global) : visible(local);
       return skills.map((skill) => ({ type: 'item', item: skill }));
     },
-    toTreeItem: (skill) => {
-      const item = new vscode.TreeItem(skill.name);
-      item.contextValue = 'skill';
-      item.checkboxState = skill.enabled
-        ? vscode.TreeItemCheckboxState.Checked
-        : vscode.TreeItemCheckboxState.Unchecked;
-      item.description = skill.path;
-      item.tooltip = skill.description || skill.name;
-      if (skill.yamlError) {
-        item.iconPath = new vscode.ThemeIcon('warning');
-      }
-      return item;
-    },
+    toTreeItem,
   };
 
-  const provider = new ContentTreeDataProvider<Skill>(config);
   return {
-    provider,
+    section,
     setData: (g, l) => {
       global = g;
       local = l;
-      provider.refresh();
     },
-    refresh: () => provider.refresh(),
   };
 }

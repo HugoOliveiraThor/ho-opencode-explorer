@@ -4,34 +4,28 @@ import { CommandsScanner } from './scanner/CommandsScanner';
 import { AgentsScanner } from './scanner/AgentsScanner';
 import { McpScanner } from './scanner/McpScanner';
 import { PromptsScanner } from './scanner/PromptsScanner';
-import { createSkillsView } from './tree/skills';
-import { createCommandsView } from './tree/commands';
-import { createAgentsView } from './tree/agents';
-import { createMcpView } from './tree/mcp';
-import { createPromptsView } from './tree/prompts';
+import { createExplorerView, type ExplorerView } from './tree/sections';
 import type { ContentNode } from './tree/content';
 import { DetailPanel } from './panel/DetailPanel';
 import { SkillToggleManager } from './toggle/SkillToggleManager';
 import { UpdateService } from './update/UpdateService';
 import { ContentCreator } from './create/ContentCreator';
 import { ContentMover } from './move/ContentMover';
-import type { DetailItem, Skill, Command, Agent, McpServer, PromptItem } from './types';
+import { HiddenSkillsManager, type HiddenSkillsStore } from './hidden/HiddenSkillsManager';
+import type { DetailItem, Skill } from './types';
 
 let scanner: SkillsScanner;
 let commandsScanner: CommandsScanner;
 let agentsScanner: AgentsScanner;
 let mcpScanner: McpScanner;
 let promptsScanner: PromptsScanner;
-let skillsView: ReturnType<typeof createSkillsView>;
-let commandsView: ReturnType<typeof createCommandsView>;
-let agentsView: ReturnType<typeof createAgentsView>;
-let mcpView: ReturnType<typeof createMcpView>;
-let promptsView: ReturnType<typeof createPromptsView>;
+let explorerView: ExplorerView;
 let detailPanel: DetailPanel;
 let toggleManager: SkillToggleManager;
 let updateService: UpdateService;
 let contentCreator: ContentCreator;
 let contentMover: ContentMover;
+let hiddenSkillsManager: HiddenSkillsManager;
 let skillsDebounceTimer: ReturnType<typeof setTimeout> | undefined;
 let commandsDebounceTimer: ReturnType<typeof setTimeout> | undefined;
 let agentsDebounceTimer: ReturnType<typeof setTimeout> | undefined;
@@ -39,57 +33,38 @@ let mcpDebounceTimer: ReturnType<typeof setTimeout> | undefined;
 let promptsDebounceTimer: ReturnType<typeof setTimeout> | undefined;
 let extensionVersion = '0.0.0';
 
+class MementoHiddenSkillsStore implements HiddenSkillsStore {
+  constructor(private readonly memento: vscode.Memento) {}
+
+  get(): string[] {
+    return this.memento.get<string[]>('hiddenSkills', []);
+  }
+
+  set(paths: string[]): void {
+    void this.memento.update('hiddenSkills', paths);
+  }
+}
+
 export function activate(context: vscode.ExtensionContext): void {
   scanner = new SkillsScanner();
   commandsScanner = new CommandsScanner();
   agentsScanner = new AgentsScanner();
   mcpScanner = new McpScanner();
   promptsScanner = new PromptsScanner();
-  skillsView = createSkillsView();
-  commandsView = createCommandsView();
-  agentsView = createAgentsView();
-  mcpView = createMcpView();
-  promptsView = createPromptsView();
+  hiddenSkillsManager = new HiddenSkillsManager(new MementoHiddenSkillsStore(context.globalState));
+  explorerView = createExplorerView(() => hiddenSkillsManager.list());
   toggleManager = new SkillToggleManager();
   updateService = new UpdateService();
   detailPanel = new DetailPanel({ onSkillEdited });
   contentCreator = new ContentCreator();
   contentMover = new ContentMover();
 
-  // Skills TreeView
-  const skillsTreeView = vscode.window.createTreeView('ho-opencode-skills', {
-    treeDataProvider: skillsView.provider,
+  // Single consolidated TreeView
+  const explorerTreeView = vscode.window.createTreeView('ho-opencode-explorer-main', {
+    treeDataProvider: explorerView.provider,
     canSelectMany: false,
   });
-  context.subscriptions.push(skillsTreeView);
-
-  // Commands TreeView
-  const commandsTreeView = vscode.window.createTreeView('ho-opencode-commands', {
-    treeDataProvider: commandsView.provider,
-    canSelectMany: false,
-  });
-  context.subscriptions.push(commandsTreeView);
-
-  // Agents TreeView
-  const agentsTreeView = vscode.window.createTreeView('ho-opencode-agents', {
-    treeDataProvider: agentsView.provider,
-    canSelectMany: false,
-  });
-  context.subscriptions.push(agentsTreeView);
-
-  // MCP TreeView
-  const mcpTreeView = vscode.window.createTreeView('ho-opencode-mcp', {
-    treeDataProvider: mcpView.provider,
-    canSelectMany: false,
-  });
-  context.subscriptions.push(mcpTreeView);
-
-  // Prompts TreeView
-  const promptsTreeView = vscode.window.createTreeView('ho-opencode-prompts', {
-    treeDataProvider: promptsView.provider,
-    canSelectMany: false,
-  });
-  context.subscriptions.push(promptsTreeView);
+  context.subscriptions.push(explorerTreeView);
 
   // Shared Detail Panel
   const panelRegistration = vscode.window.registerWebviewViewProvider(
@@ -99,30 +74,23 @@ export function activate(context: vscode.ExtensionContext): void {
   );
   context.subscriptions.push(panelRegistration);
 
-  // Selection → detail panel (generic across all five views)
-  context.subscriptions.push(
-    onSelection(skillsTreeView),
-    onSelection(commandsTreeView),
-    onSelection(agentsTreeView),
-    onSelection(mcpTreeView),
-    onSelection(promptsTreeView),
-  );
+  // Selection → detail panel
+  context.subscriptions.push(onSelection(explorerTreeView));
 
-  // Skills checkbox toggle
+  // Skill checkbox toggle (only skill items carry a checkbox)
   context.subscriptions.push(
-    skillsTreeView.onDidChangeCheckboxState(async (event) => {
+    explorerTreeView.onDidChangeCheckboxState(async (event) => {
       for (const [node, state] of event.items) {
-        if (node.type === 'item') {
-          try {
-            const newEnabled = state === vscode.TreeItemCheckboxState.Checked;
-            if (newEnabled !== node.item.enabled) {
-              toggleManager.toggle(node.item.path);
-            }
-          } catch (err) {
-            vscode.window.showErrorMessage(
-              `Failed to toggle skill: ${err instanceof Error ? err.message : 'Unknown error'}`,
-            );
+        if (node.type !== 'item' || node.item.itemType !== 'skill') continue;
+        try {
+          const newEnabled = state === vscode.TreeItemCheckboxState.Checked;
+          if (newEnabled !== node.item.enabled) {
+            toggleManager.toggle(node.item.path);
           }
+        } catch (err) {
+          vscode.window.showErrorMessage(
+            `Failed to toggle skill: ${err instanceof Error ? err.message : 'Unknown error'}`,
+          );
         }
       }
       await refreshSkills();
@@ -139,76 +107,97 @@ export function activate(context: vscode.ExtensionContext): void {
   );
   context.subscriptions.push(updateCommand);
 
-  // Refresh Skills command
+  // Refresh commands
   const refreshSkillsCommand = vscode.commands.registerCommand(
     '_ho-opencode-explorer.refreshSkills#sideBar',
     refreshSkills,
   );
   context.subscriptions.push(refreshSkillsCommand);
-
-  // Refresh Commands command
   const refreshCommandsCommand = vscode.commands.registerCommand(
     '_ho-opencode-explorer.refreshCommands#sideBar',
     refreshCommands,
   );
   context.subscriptions.push(refreshCommandsCommand);
 
-  // Open Skill command
+  // Hide Skill command
+  const hideSkillCommand = vscode.commands.registerCommand(
+    '_ho-opencode-explorer.hideSkill#sideBar',
+    (node: ContentNode<DetailItem>) => {
+      if (node.type !== 'item' || node.item.itemType !== 'skill') return;
+      hiddenSkillsManager.hide(node.item.path);
+      refreshSkills();
+    },
+  );
+  context.subscriptions.push(hideSkillCommand);
+
+  // Show Hidden Skills command
+  const showHiddenSkillsCommand = vscode.commands.registerCommand(
+    '_ho-opencode-explorer.showHiddenSkills#sideBar',
+    async () => {
+      const hidden = hiddenSkillsManager.list();
+      if (hidden.length === 0) {
+        vscode.window.showInformationMessage('No hidden skills.');
+        return;
+      }
+      const selected = await vscode.window.showQuickPick(hidden, {
+        canPickMany: true,
+        placeHolder: 'Select skills to show again',
+      });
+      if (!selected || selected.length === 0) return;
+      hiddenSkillsManager.unhide(selected);
+      refreshSkills();
+    },
+  );
+  context.subscriptions.push(showHiddenSkillsCommand);
+
+  // Open commands (each only handles its own item type)
   const openSkillCommand = vscode.commands.registerCommand(
     '_ho-opencode-explorer.openSkill#sideBar',
-    (node: ContentNode<Skill>) => {
-      if (node.type !== 'item') return;
-      const uri = vscode.Uri.file(node.item.path);
-      vscode.commands.executeCommand('vscode.open', uri);
+    (node: ContentNode<DetailItem>) => {
+      if (node.type !== 'item' || node.item.itemType !== 'skill') return;
+      vscode.commands.executeCommand('vscode.open', vscode.Uri.file(node.item.path));
     },
   );
   context.subscriptions.push(openSkillCommand);
 
-  // Open Command command
   const openCommandCommand = vscode.commands.registerCommand(
     '_ho-opencode-explorer.openCommand#sideBar',
-    (node: ContentNode<Command>) => {
-      if (node.type !== 'item' || !node.item.path) return;
-      const uri = vscode.Uri.file(node.item.path);
-      vscode.commands.executeCommand('vscode.open', uri);
+    (node: ContentNode<DetailItem>) => {
+      if (node.type !== 'item' || node.item.itemType !== 'command') return;
+      if (!node.item.path) return;
+      vscode.commands.executeCommand('vscode.open', vscode.Uri.file(node.item.path));
     },
   );
   context.subscriptions.push(openCommandCommand);
 
-  // Open Agent Source command
   const openAgentCommand = vscode.commands.registerCommand(
     '_ho-opencode-explorer.openAgent#sideBar',
-    (node: ContentNode<Agent>) => {
-      if (node.type !== 'item') return;
-      const uri = vscode.Uri.file(node.item.path);
-      vscode.commands.executeCommand('vscode.open', uri);
+    (node: ContentNode<DetailItem>) => {
+      if (node.type !== 'item' || node.item.itemType !== 'agent') return;
+      vscode.commands.executeCommand('vscode.open', vscode.Uri.file(node.item.path));
     },
   );
   context.subscriptions.push(openAgentCommand);
 
-  // Open MCP Config command
   const openMcpCommand = vscode.commands.registerCommand(
     '_ho-opencode-explorer.openMcp#sideBar',
-    (node: ContentNode<McpServer>) => {
-      if (node.type !== 'item') return;
-      const uri = vscode.Uri.file(node.item.path);
-      vscode.commands.executeCommand('vscode.open', uri);
+    (node: ContentNode<DetailItem>) => {
+      if (node.type !== 'item' || node.item.itemType !== 'mcp') return;
+      vscode.commands.executeCommand('vscode.open', vscode.Uri.file(node.item.path));
     },
   );
   context.subscriptions.push(openMcpCommand);
 
-  // Open Prompt command
   const openPromptCommand = vscode.commands.registerCommand(
     '_ho-opencode-explorer.openPrompt#sideBar',
-    (node: ContentNode<PromptItem>) => {
-      if (node.type !== 'item') return;
-      const uri = vscode.Uri.file(node.item.path);
-      vscode.commands.executeCommand('vscode.open', uri);
+    (node: ContentNode<DetailItem>) => {
+      if (node.type !== 'item' || node.item.itemType !== 'prompt') return;
+      vscode.commands.executeCommand('vscode.open', vscode.Uri.file(node.item.path));
     },
   );
   context.subscriptions.push(openPromptCommand);
 
-  // New Skill command
+  // New commands
   const newSkillCommand = vscode.commands.registerCommand(
     '_ho-opencode-explorer.newSkill#sideBar',
     async () => {
@@ -226,7 +215,6 @@ export function activate(context: vscode.ExtensionContext): void {
   );
   context.subscriptions.push(newSkillCommand);
 
-  // New Command command
   const newCommandCommand = vscode.commands.registerCommand(
     '_ho-opencode-explorer.newCommand#sideBar',
     async () => {
@@ -244,11 +232,11 @@ export function activate(context: vscode.ExtensionContext): void {
   );
   context.subscriptions.push(newCommandCommand);
 
-  // Move Skill command
+  // Move commands
   const moveSkillCommand = vscode.commands.registerCommand(
     '_ho-opencode-explorer.moveSkill#sideBar',
-    async (node: ContentNode<Skill>) => {
-      if (node.type !== 'item') return;
+    async (node: ContentNode<DetailItem>) => {
+      if (node.type !== 'item' || node.item.itemType !== 'skill') return;
       const item = node.item;
       const dest = item.source === 'global' ? 'Local' : 'Global';
       const action = await vscode.window.showWarningMessage(
@@ -271,15 +259,14 @@ export function activate(context: vscode.ExtensionContext): void {
   );
   context.subscriptions.push(moveSkillCommand);
 
-  // Move Command command
   const moveCommandCommand = vscode.commands.registerCommand(
     '_ho-opencode-explorer.moveCommand#sideBar',
-    async (node: ContentNode<Command>) => {
-      if (node.type !== 'item') return;
-      const scope = node.item.scope;
-      const pathValue = node.item.path;
-      if (!scope || !pathValue) return;
+    async (node: ContentNode<DetailItem>) => {
+      if (node.type !== 'item' || node.item.itemType !== 'command') return;
       const item = node.item;
+      const scope = item.scope;
+      const pathValue = item.path;
+      if (!scope || !pathValue) return;
       const dest = scope === 'global' ? 'Local' : 'Global';
       const action = await vscode.window.showWarningMessage(
         `Move command "${item.name}" to ${dest}? The original will be removed.`,
@@ -319,8 +306,8 @@ function onSkillEdited(updated: Skill): void {
   detailPanel.show(updated);
 }
 
-function onSelection<T extends DetailItem>(
-  treeView: vscode.TreeView<ContentNode<T>>,
+function onSelection(
+  treeView: vscode.TreeView<ContentNode<DetailItem>>,
 ): vscode.Disposable {
   return treeView.onDidChangeSelection((event) => {
     const node = event.selection[0];
@@ -348,7 +335,6 @@ function setupFileWatchers(context: vscode.ExtensionContext): void {
     context.subscriptions.push(watcher);
   }
 
-  // Local skills watcher
   const workspaceFolders = vscode.workspace.workspaceFolders;
   if (workspaceFolders && workspaceFolders.length > 0) {
     const localPattern = new vscode.RelativePattern(
@@ -362,7 +348,6 @@ function setupFileWatchers(context: vscode.ExtensionContext): void {
     context.subscriptions.push(localWatcher);
   }
 
-  // Commands file watchers
   const commandsFilePattern = new vscode.RelativePattern(
     vscode.Uri.file(home),
     '.config/opencode/commands/**/*.md',
@@ -373,7 +358,6 @@ function setupFileWatchers(context: vscode.ExtensionContext): void {
   commandsFileWatcher.onDidDelete(debouncedRefreshCommands);
   context.subscriptions.push(commandsFileWatcher);
 
-  // opencode.json watcher (affects all config-backed views)
   const configPattern = new vscode.RelativePattern(
     vscode.Uri.file(home),
     '.config/opencode/opencode.json',
@@ -407,7 +391,6 @@ function setupFileWatchers(context: vscode.ExtensionContext): void {
     context.subscriptions.push(localCommandsWatcher);
   }
 
-  // Agents watchers
   const agentsGlobalPattern = new vscode.RelativePattern(
     vscode.Uri.file(home),
     '.config/opencode/agent/**/*.md',
@@ -430,7 +413,6 @@ function setupFileWatchers(context: vscode.ExtensionContext): void {
     context.subscriptions.push(agentsLocalWatcher);
   }
 
-  // MCP project watcher
   if (workspaceFolders && workspaceFolders.length > 0) {
     const mcpPattern = new vscode.RelativePattern(workspaceFolders[0]!, '.mcp.json');
     const mcpWatcher = vscode.workspace.createFileSystemWatcher(mcpPattern);
@@ -440,7 +422,6 @@ function setupFileWatchers(context: vscode.ExtensionContext): void {
     context.subscriptions.push(mcpWatcher);
   }
 
-  // Prompts watchers
   const promptsGlobalPattern = new vscode.RelativePattern(
     vscode.Uri.file(home),
     '.config/opencode/prompts/**/*.{txt,md}',
@@ -504,7 +485,7 @@ async function refreshSkills(): Promise<void> {
   const workspaceRoot = workspaceFolders?.[0]?.uri.fsPath;
 
   const { global, local } = await scanner.scanAll(workspaceRoot);
-  skillsView.setData(global, local);
+  explorerView.setSkills(global, local);
   updateViewTitle();
 }
 
@@ -513,7 +494,7 @@ async function refreshCommands(): Promise<void> {
   const workspaceRoot = workspaceFolders?.[0]?.uri.fsPath;
 
   const groups = await commandsScanner.scanAll(workspaceRoot);
-  commandsView.setData(groups);
+  explorerView.setCommands(groups);
 }
 
 async function refreshAgents(): Promise<void> {
@@ -521,7 +502,7 @@ async function refreshAgents(): Promise<void> {
   const workspaceRoot = workspaceFolders?.[0]?.uri.fsPath;
 
   const result = await agentsScanner.scanAll(workspaceRoot);
-  agentsView.setData(result.config, result.global, result.local);
+  explorerView.setAgents(result.config, result.global, result.local);
 }
 
 async function refreshMcp(): Promise<void> {
@@ -529,7 +510,7 @@ async function refreshMcp(): Promise<void> {
   const workspaceRoot = workspaceFolders?.[0]?.uri.fsPath;
 
   const result = await mcpScanner.scanAll(workspaceRoot);
-  mcpView.setData(result.global, result.project);
+  explorerView.setMcp(result.global, result.project);
 }
 
 async function refreshPrompts(): Promise<void> {
@@ -537,7 +518,7 @@ async function refreshPrompts(): Promise<void> {
   const workspaceRoot = workspaceFolders?.[0]?.uri.fsPath;
 
   const result = await promptsScanner.scanAll(workspaceRoot);
-  promptsView.setData(result.global, result.local);
+  explorerView.setPrompts(result.global, result.local);
 }
 
 function updateViewTitle(): void {

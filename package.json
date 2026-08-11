@@ -30,8 +30,7 @@
     "Other"
   ],
   "activationEvents": [
-    "onView:ho-opencode-skills",
-    "onView:ho-opencode-commands"
+    "onView:ho-opencode-explorer-main"
   ],
   "main": "./dist/extension.js",
   "contributes": {
@@ -47,24 +46,8 @@
     "views": {
       "ho-opencode-explorer": [
         {
-          "id": "ho-opencode-skills",
-          "name": "Skills"
-        },
-        {
-          "id": "ho-opencode-commands",
-          "name": "Commands"
-        },
-        {
-          "id": "ho-opencode-agents",
-          "name": "Agents"
-        },
-        {
-          "id": "ho-opencode-mcp",
-          "name": "MCP Servers"
-        },
-        {
-          "id": "ho-opencode-prompts",
-          "name": "Prompts & Instructions"
+          "id": "ho-opencode-explorer-main",
+          "name": "OpenCode Explorer"
         },
         {
           "id": "ho-opencode-detail",
@@ -145,76 +128,93 @@
         "title": "Move Command",
         "category": "HO OpenCode Explorer",
         "icon": "$(arrow-swap)"
+      },
+      {
+        "command": "_ho-opencode-explorer.hideSkill#sideBar",
+        "title": "Hide Skill",
+        "category": "HO OpenCode Explorer",
+        "icon": "$(eye-closed)"
+      },
+      {
+        "command": "_ho-opencode-explorer.showHiddenSkills#sideBar",
+        "title": "Show Hidden Skills",
+        "category": "HO OpenCode Explorer",
+        "icon": "$(eye)"
       }
     ],
     "menus": {
       "view/title": [
         {
           "command": "_ho-opencode-explorer.checkForUpdates#sideBar",
-          "when": "view == ho-opencode-skills",
+          "when": "view == ho-opencode-explorer-main",
           "group": "navigation"
         },
         {
           "command": "_ho-opencode-explorer.refreshSkills#sideBar",
-          "when": "view == ho-opencode-skills",
-          "group": "navigation"
-        },
-        {
-          "command": "_ho-opencode-explorer.checkForUpdates#sideBar",
-          "when": "view == ho-opencode-commands",
-          "group": "navigation"
+          "when": "view == ho-opencode-explorer-main",
+          "group": "navigation@1"
         },
         {
           "command": "_ho-opencode-explorer.refreshCommands#sideBar",
-          "when": "view == ho-opencode-commands",
-          "group": "navigation"
+          "when": "view == ho-opencode-explorer-main",
+          "group": "navigation@2"
         },
         {
           "command": "_ho-opencode-explorer.newSkill#sideBar",
-          "when": "view == ho-opencode-skills",
-          "group": "navigation"
+          "when": "view == ho-opencode-explorer-main",
+          "group": "navigation@3"
         },
         {
           "command": "_ho-opencode-explorer.newCommand#sideBar",
-          "when": "view == ho-opencode-commands",
-          "group": "navigation"
+          "when": "view == ho-opencode-explorer-main",
+          "group": "navigation@4"
+        },
+        {
+          "command": "_ho-opencode-explorer.showHiddenSkills#sideBar",
+          "when": "view == ho-opencode-explorer-main",
+          "group": "navigation@5"
         }
       ],
       "view/item/context": [
         {
           "command": "_ho-opencode-explorer.openSkill#sideBar",
-          "when": "view == ho-opencode-skills && viewItem == skill",
+          "when": "view == ho-opencode-explorer-main && viewItem == skill",
           "group": "inline"
         },
         {
           "command": "_ho-opencode-explorer.openCommand#sideBar",
-          "when": "view == ho-opencode-commands && viewItem == command",
+          "when": "view == ho-opencode-explorer-main && viewItem == command",
           "group": "inline"
         },
         {
           "command": "_ho-opencode-explorer.openAgent#sideBar",
-          "when": "view == ho-opencode-agents && viewItem == agent",
+          "when": "view == ho-opencode-explorer-main && viewItem == agent",
           "group": "inline"
         },
         {
           "command": "_ho-opencode-explorer.openMcp#sideBar",
-          "when": "view == ho-opencode-mcp && viewItem == mcp",
+          "when": "view == ho-opencode-explorer-main && viewItem == mcp",
           "group": "inline"
         },
         {
           "command": "_ho-opencode-explorer.openPrompt#sideBar",
-          "when": "view == ho-opencode-prompts && viewItem == prompt",
+          "when": "view == ho-opencode-explorer-main && viewItem == prompt",
           "group": "inline"
         },
         {
           "command": "_ho-opencode-explorer.moveSkill#sideBar",
-          "when": "view == ho-opencode-skills && viewItem == skill",
+          "when": "view == ho-opencode-explorer-main && viewItem == skill",
           "group": "navigation"
         },
         {
           "command": "_ho-opencode-explorer.moveCommand#sideBar",
-          "when": "view == ho-opencode-commands && viewItem == command",
+          "when": "view == ho-opencode-explorer-main && viewItem == command",
           "group": "navigation"
+        },
+        {
+          "command": "_ho-opencode-explorer.hideSkill#sideBar",
+          "when": "view == ho-opencode-explorer-main && viewItem == skill",
+          "group": "navigation@1"
         }
       ]
     }

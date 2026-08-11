@@ -1,52 +1,52 @@
 import * as vscode from 'vscode';
-import { ContentTreeDataProvider, type ContentProviderConfig } from './content';
-import type { Command, CommandGroup } from '../types';
+import { truncateEnd } from '../util/truncate';
+import type { ContentCategory, ContentItemNode, SectionDefinition } from './content';
+import type { CommandGroup, DetailItem } from '../types';
 
-export interface CommandsView {
-  provider: ContentTreeDataProvider<Command>;
+export interface CommandsSection {
+  section: SectionDefinition<DetailItem>;
   setData(groups: CommandGroup[]): void;
-  refresh(): void;
 }
 
-export function createCommandsView(): CommandsView {
+export function createCommandsSection(): CommandsSection {
   let groups: CommandGroup[] = [];
 
-  const config: ContentProviderConfig<Command> = {
-    getCategories: () => {
-      return groups
+  const section: SectionDefinition<DetailItem> = {
+    key: 'command',
+    label: 'Commands',
+    getCategories: (): ContentCategory[] =>
+      groups
         .filter((group) => group.commands.length > 0)
         .map((group) => ({
-          type: 'category' as const,
+          type: 'category',
+          sectionKey: 'command',
           key: group.source,
           label: group.label,
           count: group.commands.length,
-        }));
-    },
-    getCategoryChildren: (category) => {
+        })),
+    getCategoryChildren: (category): ContentItemNode<DetailItem>[] => {
       const group = groups.find((g) => g.source === category.key);
       return (group?.commands ?? []).map((command) => ({ type: 'item', item: command }));
     },
-    toTreeItem: (command) => {
-      const item = new vscode.TreeItem(command.name);
-      item.contextValue = 'command';
-      item.description = command.description || undefined;
-      item.tooltip = command.template || command.description || command.name;
-      item.iconPath = command.error
+    toTreeItem: (item: DetailItem): vscode.TreeItem => {
+      if (item.itemType !== 'command') throw new Error('Expected command item');
+      const treeItem = new vscode.TreeItem(item.name);
+      treeItem.contextValue = 'command';
+      treeItem.description = item.description ? truncateEnd(item.description, 40) : undefined;
+      treeItem.tooltip = item.path || item.template || item.name;
+      treeItem.iconPath = item.error
         ? new vscode.ThemeIcon('warning')
-        : command.source === 'file'
+        : item.source === 'file'
           ? new vscode.ThemeIcon('file')
           : new vscode.ThemeIcon('json');
-      return item;
+      return treeItem;
     },
   };
 
-  const provider = new ContentTreeDataProvider<Command>(config);
   return {
-    provider,
+    section,
     setData: (g) => {
       groups = g;
-      provider.refresh();
     },
-    refresh: () => provider.refresh(),
   };
 }
