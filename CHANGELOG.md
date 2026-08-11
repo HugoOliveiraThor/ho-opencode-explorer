@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.2.1](https://github.com/HugoOliveiraThor/ho-opencode-explorer/compare/v0.2.0...v0.2.1) (2026-08-11)
+
+
+### Build
+
+* resolve dev dependency vulnerabilities ([c8d8b40](https://github.com/HugoOliveiraThor/ho-opencode-explorer/commit/c8d8b400affe9bc8c8d022a77546adc9ead07c97))
+
 ## [0.2.0](https://github.com/HugoOliveiraThor/ho-opencode-explorer/compare/v0.1.9...v0.2.0) (2026-08-11)
 
 
