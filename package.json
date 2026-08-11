@@ -289,7 +289,7 @@
     "@vscode/test-cli": "^0.0.10",
     "@vscode/test-electron": "^2.4.1",
     "commitlint": "^19.0.0",
-    "esbuild": "^0.24.0",
+    "esbuild": "^0.28.2",
     "eslint": "^9.0.0",
     "glob": "^13.0.6",
     "husky": "^9.0.0",
