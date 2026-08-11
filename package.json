@@ -296,7 +296,7 @@
     "mocha": "^10.8.0",
     "prettier": "^3.4.0",
     "standard-version": "^9.5.0",
-    "typescript": "^5.7.0"
+    "typescript": "^7.0.2"
   },
   "dependencies": {
     "semver": "^7.6.0",
